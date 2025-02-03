@@ -15,6 +15,7 @@ namespace DX12GameProgramming
     {
         private readonly List<FrameResource> _frameResources = new List<FrameResource>(NumFrameResources);
         private readonly List<AutoResetEvent> _fenceEvents = new List<AutoResetEvent>(NumFrameResources);
+
         private int _currFrameResourceIndex;
 
         private RootSignature _rootSignature;
@@ -43,7 +44,7 @@ namespace DX12GameProgramming
         private Matrix _view = Matrix.Identity;
 
         private float _theta = 1.5f * MathUtil.Pi;
-        private float _phi = 0.2f * MathUtil.Pi;
+        private float _phi = 0.4f * MathUtil.Pi;
         private float _radius = 15.0f;
 
         private Point _lastMousePos;
@@ -65,8 +66,10 @@ namespace DX12GameProgramming
 
             BuildRootSignature();
             BuildShadersAndInputLayout();
+
             BuildShapeGeometry();
             BuildSkullGeometry();
+
             BuildMaterials();
             BuildRenderItems();
             BuildFrameResources();
@@ -375,6 +378,7 @@ namespace DX12GameProgramming
                 Pos = vertex.Position,
                 Normal = vertex.Normal
             }));
+
             indices.AddRange(meshData.GetIndices16());
 
             return submesh;
@@ -385,7 +389,8 @@ namespace DX12GameProgramming
             var vertices = new List<Vertex>();
             var indices = new List<int>();
             int vCount = 0, tCount = 0;
-            using (var reader = new StreamReader("Models\\Skull.txt"))
+
+            using (StreamReader reader = new StreamReader("Models\\Skull.txt"))
             {
                 var input = reader.ReadLine();
                 if (input != null)
@@ -399,6 +404,8 @@ namespace DX12GameProgramming
                 {
                     input = reader.ReadLine();
                 } while (input != null && !input.StartsWith("{", StringComparison.Ordinal));
+
+
 
                 for (int i = 0; i < vCount; i++)
                 {
@@ -432,6 +439,7 @@ namespace DX12GameProgramming
                     {
                         break;
                     }
+
                     var m = input.Trim().Split(' ');
                     indices.Add(Convert.ToInt32(m[0].Trim()));
                     indices.Add(Convert.ToInt32(m[1].Trim()));
@@ -440,6 +448,7 @@ namespace DX12GameProgramming
             }
 
             var geo = MeshGeometry.New(Device, CommandList, vertices, indices, "skullGeo");
+
             var submesh = new SubmeshGeometry
             {
                 IndexCount = indices.Count,
@@ -473,6 +482,7 @@ namespace DX12GameProgramming
                 SampleDescription = new SampleDescription(MsaaCount, MsaaQuality),
                 DepthStencilFormat = DepthStencilFormat
             };
+
             opaquePsoDesc.RenderTargetFormats[0] = BackBufferFormat;
 
             _opaquePso = Device.CreateGraphicsPipelineState(opaquePsoDesc);
@@ -498,6 +508,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.02f),
                 Roughness = 0.1f
             });
+
             AddMaterial(new Material
             {
                 Name = "stone0",
@@ -507,6 +518,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.05f),
                 Roughness = 0.3f
             });
+
             AddMaterial(new Material
             {
                 Name = "tile0",
@@ -516,6 +528,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.02f),
                 Roughness = 0.2f
             });
+
             AddMaterial(new Material
             {
                 Name = "skullMat",
@@ -533,11 +546,15 @@ namespace DX12GameProgramming
         {
             AddRenderItem(RenderLayer.Opaque, 0, "stone0", "shapeGeo", "box",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f) * Matrix.Translation(0.0f, 0.5f, 0.0f));
+
             AddRenderItem(RenderLayer.Opaque, 1, "tile0", "shapeGeo", "grid");
+
             AddRenderItem(RenderLayer.Opaque, 2, "skullMat", "skullGeo", "skull",
                 world: Matrix.Scaling(0.5f) * Matrix.Translation(Vector3.UnitY));
 
+
             int objCBIndex = 3;
+
             for (int i = 0; i < 5; ++i)
             {
                 AddRenderItem(RenderLayer.Opaque, objCBIndex++, "bricks0", "shapeGeo", "cylinder",
@@ -557,6 +574,7 @@ namespace DX12GameProgramming
         {
             MeshGeometry geo = _geometries[geoName];
             SubmeshGeometry submesh = geo.DrawArgs[submeshName];
+
             var renderItem = new RenderItem
             {
                 ObjCBIndex = objCBIndex,
@@ -567,6 +585,7 @@ namespace DX12GameProgramming
                 BaseVertexLocation = submesh.BaseVertexLocation,
                 World = world ?? Matrix.Identity
             };
+
             _ritemLayers[layer].Add(renderItem);
             _allRitems.Add(renderItem);
         }

@@ -3,6 +3,12 @@
 		<UseWindowsForms>true</UseWindowsForms>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Cameraold.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Cameraold.cs.old" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="SharpDX" Version="4.0.1" />
 		<PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" />
 		<PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" />

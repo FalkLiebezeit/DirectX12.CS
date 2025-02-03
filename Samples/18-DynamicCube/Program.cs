@@ -7,7 +7,7 @@ namespace DX12GameProgramming
         [STAThread]
         static void Main(string[] args)
         {
-            using (var app = new DynamicCubeApp())
+            using (DynamicCubeApp app = new DynamicCubeApp())
             {
                 app.Initialize();
                 app.Run();

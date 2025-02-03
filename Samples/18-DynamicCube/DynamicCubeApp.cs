@@ -126,6 +126,7 @@ namespace DX12GameProgramming
             Matrix skullOffset = Matrix.Translation(3.0f, 2.0f, 0.0f);
             Matrix skullLocalRotate = Matrix.RotationY(2.0f * gt.TotalTime);
             Matrix skullGlobalRotate = Matrix.RotationY(0.5f * gt.TotalTime);
+
             _skullRitem.World = skullScale * skullLocalRotate * skullOffset * skullGlobalRotate;
             _skullRitem.NumFramesDirty = NumFrameResources;
 
@@ -263,6 +264,7 @@ namespace DX12GameProgramming
                 _dynamicCubeMap?.Dispose();
                 _rootSignature?.Dispose();
                 _srvDescriptorHeap?.Dispose();
+
                 foreach (Texture texture in _textures.Values) texture.Dispose();
                 foreach (FrameResource frameResource in _frameResources) frameResource.Dispose();
                 foreach (MeshGeometry geometry in _geometries.Values) geometry.Dispose();
@@ -417,6 +419,7 @@ namespace DX12GameProgramming
                 Name = name,
                 Filename = $"Textures\\{filename}"
             };
+
             tex.Resource = TextureUtilities.CreateTextureFromDDS(Device, tex.Filename);
             _textures[tex.Name] = tex;
         }
@@ -640,6 +643,7 @@ namespace DX12GameProgramming
             var vertices = new List<Vertex>();
             var indices = new List<int>();
             int vCount = 0, tCount = 0;
+
             using (var reader = new StreamReader("Models\\Skull.txt"))
             {
                 var input = reader.ReadLine();
@@ -695,6 +699,7 @@ namespace DX12GameProgramming
             }
 
             var geo = MeshGeometry.New(Device, CommandList, vertices.ToArray(), indices.ToArray(), "skullGeo");
+
             var submesh = new SubmeshGeometry
             {
                 IndexCount = indices.Count,
@@ -759,6 +764,7 @@ namespace DX12GameProgramming
 
         private void BuildMaterials()
         {
+
             AddMaterial(new Material
             {
                 Name = "bricks0",
@@ -768,6 +774,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.1f),
                 Roughness = 0.3f
             });
+
             AddMaterial(new Material
             {
                 Name = "tile0",
@@ -777,6 +784,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.2f),
                 Roughness = 0.1f
             });
+
             AddMaterial(new Material
             {
                 Name = "mirror0",
@@ -786,6 +794,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.98f, 0.97f, 0.95f),
                 Roughness = 0.1f
             });
+
             AddMaterial(new Material
             {
                 Name = "sky",
@@ -795,6 +804,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.1f),
                 Roughness = 1.0f
             });
+
             AddMaterial(new Material
             {
                 Name = "skullMat",
@@ -812,28 +822,36 @@ namespace DX12GameProgramming
         {
             AddRenderItem(RenderLayer.Sky, 0, "sky", "shapeGeo", "sphere",
                 world: Matrix.Scaling(5000.0f));
+
             _skullRitem = AddRenderItem(RenderLayer.Opaque, 1, "skullMat", "skullGeo", "skull");
+
             AddRenderItem(RenderLayer.Opaque, 2, "bricks0", "shapeGeo", "box",
                 world: Matrix.Scaling(2.0f, 1.0f, 2.0f) * Matrix.Translation(0.0f, 0.5f, 0.0f),
                 texTransform: Matrix.Scaling(1.0f, 0.5f, 1.0f));
+
             AddRenderItem(RenderLayer.OpaqueDynamicReflectors, 3, "mirror0", "shapeGeo", "sphere",
                 world: Matrix.Scaling(2.0f) * Matrix.Translation(0.0f, 2.0f, 0.0f));
+
             AddRenderItem(RenderLayer.Opaque, 4, "tile0", "shapeGeo", "grid",
                 texTransform: Matrix.Scaling(8.0f, 8.0f, 1.0f));
 
             Matrix brickTexTransform = Matrix.Scaling(1.5f, 2.0f, 1.0f);
+
             int objCBIndex = 5;
+
             for (int i = 0; i < 5; ++i)
             {
                 AddRenderItem(RenderLayer.Opaque, objCBIndex++, "bricks0", "shapeGeo", "cylinder",
                     world: Matrix.Translation(-5.0f, 1.5f, -10.0f + i * 5.0f),
                     texTransform: brickTexTransform);
+
                 AddRenderItem(RenderLayer.Opaque, objCBIndex++, "bricks0", "shapeGeo", "cylinder",
                     world: Matrix.Translation(+5.0f, 1.5f, -10.0f + i * 5.0f),
                     texTransform: brickTexTransform);
 
                 AddRenderItem(RenderLayer.Opaque, objCBIndex++, "mirror0", "shapeGeo", "sphere",
                     world: Matrix.Translation(-5.0f, 3.5f, -10.0f + i * 5.0f));
+
                 AddRenderItem(RenderLayer.Opaque, objCBIndex++, "mirror0", "shapeGeo", "sphere",
                     world: Matrix.Translation(+5.0f, 3.5f, -10.0f + i * 5.0f));
             }
@@ -844,6 +862,7 @@ namespace DX12GameProgramming
         {
             MeshGeometry geo = _geometries[geoName];
             SubmeshGeometry submesh = geo.DrawArgs[submeshName];
+
             var renderItem = new RenderItem
             {
                 ObjCBIndex = objCBIndex,
@@ -855,8 +874,10 @@ namespace DX12GameProgramming
                 World = world ?? Matrix.Identity,
                 TexTransform = texTransform ?? Matrix.Identity
             };
+
             _ritemLayers[layer].Add(renderItem);
             _allRitems.Add(renderItem);
+
             return renderItem;
         }
 

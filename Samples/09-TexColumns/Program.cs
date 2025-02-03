@@ -4,7 +4,7 @@ namespace DX12GameProgramming
     {
         static void Main(string[] args)
         {
-            using (var app = new TexColumnsApp())
+            using (TexColumnsApp app = new TexColumnsApp())
             {
                 app.Initialize();
                 app.Run();

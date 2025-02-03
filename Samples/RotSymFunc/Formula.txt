@@ -1,0 +1,4 @@
+http://www.sc.ehu.es/sbweb/fisica3/basico/graficos/graficos_3.html
+
+
+f(x,z) = y = (sin r) / r     r = sqrt(x^2 + z^2)

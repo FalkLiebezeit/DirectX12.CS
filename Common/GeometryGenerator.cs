@@ -63,31 +63,38 @@ namespace DX12GameProgramming
             meshData.Vertices.Add(new Vertex(-w2, +h2, -d2, 0, 0, -1, 1, 0, 0, 0, 0));
             meshData.Vertices.Add(new Vertex(+w2, +h2, -d2, 0, 0, -1, 1, 0, 0, 1, 0));
             meshData.Vertices.Add(new Vertex(+w2, -h2, -d2, 0, 0, -1, 1, 0, 0, 1, 1));
+
             // Fill in the back face vertex data.
             meshData.Vertices.Add(new Vertex(-w2, -h2, +d2, 0, 0, 1, -1, 0, 0, 1, 1));
             meshData.Vertices.Add(new Vertex(+w2, -h2, +d2, 0, 0, 1, -1, 0, 0, 0, 1));
             meshData.Vertices.Add(new Vertex(+w2, +h2, +d2, 0, 0, 1, -1, 0, 0, 0, 0));
             meshData.Vertices.Add(new Vertex(-w2, +h2, +d2, 0, 0, 1, -1, 0, 0, 1, 0));
+
             // Fill in the top face vertex data.
             meshData.Vertices.Add(new Vertex(-w2, +h2, -d2, 0, 1, 0, 1, 0, 0, 0, 1));
             meshData.Vertices.Add(new Vertex(-w2, +h2, +d2, 0, 1, 0, 1, 0, 0, 0, 0));
             meshData.Vertices.Add(new Vertex(+w2, +h2, +d2, 0, 1, 0, 1, 0, 0, 1, 0));
             meshData.Vertices.Add(new Vertex(+w2, +h2, -d2, 0, 1, 0, 1, 0, 0, 1, 1));
+
             // Fill in the bottom face vertex data.
             meshData.Vertices.Add(new Vertex(-w2, -h2, -d2, 0, -1, 0, -1, 0, 0, 1, 1));
             meshData.Vertices.Add(new Vertex(+w2, -h2, -d2, 0, -1, 0, -1, 0, 0, 0, 1));
             meshData.Vertices.Add(new Vertex(+w2, -h2, +d2, 0, -1, 0, -1, 0, 0, 0, 0));
             meshData.Vertices.Add(new Vertex(-w2, -h2, +d2, 0, -1, 0, -1, 0, 0, 1, 0));
+
             // Fill in the left face vertex data.
             meshData.Vertices.Add(new Vertex(-w2, -h2, +d2, -1, 0, 0, 0, 0, -1, 0, 1));
             meshData.Vertices.Add(new Vertex(-w2, +h2, +d2, -1, 0, 0, 0, 0, -1, 0, 0));
             meshData.Vertices.Add(new Vertex(-w2, +h2, -d2, -1, 0, 0, 0, 0, -1, 1, 0));
             meshData.Vertices.Add(new Vertex(-w2, -h2, -d2, -1, 0, 0, 0, 0, -1, 1, 1));
+
             // Fill in the right face vertex data.
             meshData.Vertices.Add(new Vertex(+w2, -h2, -d2, 1, 0, 0, 0, 0, 1, 0, 1));
             meshData.Vertices.Add(new Vertex(+w2, +h2, -d2, 1, 0, 0, 0, 0, 1, 0, 0));
             meshData.Vertices.Add(new Vertex(+w2, +h2, +d2, 1, 0, 0, 0, 0, 1, 1, 0));
             meshData.Vertices.Add(new Vertex(+w2, -h2, +d2, 1, 0, 0, 0, 0, 1, 1, 1));
+
+
 
             //
             // Create the indices.
@@ -97,14 +104,19 @@ namespace DX12GameProgramming
             {
                 // Fill in the front face index data.
                 0, 1, 2, 0, 2, 3,
+
                 // Fill in the back face index data.
                 4, 5, 6, 4, 6, 7,
+
                 // Fill in the top face index data.
                 8, 9, 10, 8, 10, 11,
+
                 // Fill in the bottom face index data.
                 12, 13, 14, 12, 14, 15,
+
                 // Fill in the left face index data
                 16, 17, 18, 16, 18, 19,
+
                 // Fill in the right face index data
                 20, 21, 22, 20, 22, 23
             });
@@ -392,6 +404,9 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+
+
+
         private static void Subdivide(MeshData meshData)
         {
             // Save a copy of the input geometry.
@@ -599,6 +614,7 @@ namespace DX12GameProgramming
         public static MeshData BuildFullscreenQuad()
         {
             var meshData = new MeshData();
+
             meshData.Vertices.Add(new Vertex(
                 -1.0f, -1.0f, 0.0f,
                 0.0f, 0.0f, -1.0f,
@@ -619,12 +635,14 @@ namespace DX12GameProgramming
                 0.0f, 0.0f, -1.0f,
                 1.0f, 0.0f, 0.0f,
                 1.0f, 1.0f));
+
             meshData.Indices32.Add(0);
             meshData.Indices32.Add(1);
             meshData.Indices32.Add(2);
             meshData.Indices32.Add(0);
             meshData.Indices32.Add(2);
             meshData.Indices32.Add(3);
+
             return meshData;
         }
     }

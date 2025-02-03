@@ -16,9 +16,6 @@ using Resource = SharpDX.Direct3D12.Resource;
 
 namespace DX12GameProgramming
 {
-    // TODO: There are currently following standing issues with all the samples:
-    // TODO: Entering fullscreen mode will crash - https://github.com/d3dcoder/d3d12book/issues/2
-    // TODO: Changing multisample settings will crash - https://github.com/d3dcoder/d3d12book/issues/3
     public class D3DApp : IDisposable
     {
         public const int NumFrameResources = 3;
@@ -103,6 +100,7 @@ namespace DX12GameProgramming
         protected Resource CurrentBackBuffer => _swapChainBuffers[SwapChain.CurrentBackBufferIndex];
         protected CpuDescriptorHandle CurrentBackBufferView
             => RtvHeap.CPUDescriptorHandleForHeapStart + SwapChain.CurrentBackBufferIndex * RtvDescriptorSize;
+
         protected CpuDescriptorHandle DepthStencilView => DsvHeap.CPUDescriptorHandleForHeapStart;
 
         public virtual void Initialize()
@@ -119,14 +117,19 @@ namespace DX12GameProgramming
         public void Run()
         {
             Timer.Reset();
+
             while (_running)
             {
                 Application.DoEvents();
+
                 Timer.Tick();
+
                 if (!_appPaused)
                 {
                     CalculateFrameRateStats();
+
                     Update(Timer);
+
                     Draw(Timer);
                 }
                 else
@@ -273,8 +276,10 @@ namespace DX12GameProgramming
             _window.MouseDown += (sender, e) => OnMouseDown((MouseButtons)e.Button, new Point(e.X, e.Y));
             _window.MouseUp += (sender, e) => OnMouseUp((MouseButtons)e.Button, new Point(e.X, e.Y));
             _window.MouseMove += (sender, e) => OnMouseMove((MouseButtons)e.Button, new Point(e.X, e.Y));
+
             _window.KeyDown += (sender, e) => OnKeyDown((Keys)e.KeyCode);
             _window.KeyUp += (sender, e) => OnKeyUp((Keys)e.KeyCode);
+
             _window.ResizeBegin += (sender, e) =>
             {
                 _appPaused = true;
@@ -386,13 +391,22 @@ namespace DX12GameProgramming
                 case Keys.Escape:
                     _running = false;
                     break;
-                case Keys.F2:
+
+                    /*  Falk
+                   case Keys.F2:
                     M4xMsaaState = !M4xMsaaState;
                     break;
+                    */
             }
         }
 
-        protected bool IsKeyDown(Keys keyCode) => Keyboard.IsKeyDown(KeyInterop.KeyFromVirtualKey((int)keyCode));
+
+        protected bool IsKeyDown(Keys keyCode)
+        {
+            return true;
+             
+            //return Keyboard.IsKeyDown(KeyInterop.KeyFromVirtualKey((int)keyCode));
+        }
 
         protected void InitDirect3D()
         {
@@ -419,6 +433,7 @@ namespace DX12GameProgramming
                 // Try to create hardware device.
                 // Pass NULL to use the default adapter which is the first adapter that is enumerated by Factory.Adapters.
                 // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/dn770336(v=vs.85).aspx
+
                 Device = new Device(null, FeatureLevel.Level_11_0);
             }
             catch (SharpDXException)
@@ -433,6 +448,7 @@ namespace DX12GameProgramming
 
             RtvDescriptorSize = Device.GetDescriptorHandleIncrementSize(DescriptorHeapType.RenderTargetView);
             DsvDescriptorSize = Device.GetDescriptorHandleIncrementSize(DescriptorHeapType.DepthStencilView);
+
             CbvSrvUavDescriptorSize = Device.GetDescriptorHandleIncrementSize(
                 DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView);
 
@@ -445,6 +461,7 @@ namespace DX12GameProgramming
             msQualityLevels.SampleCount = 4;
             msQualityLevels.Flags = MultisampleQualityLevelFlags.None;
             msQualityLevels.QualityLevelCount = 0;
+
             Debug.Assert(Device.CheckFeatureSupport(Feature.MultisampleQualityLevels, ref msQualityLevels));
             _m4xMsaaQuality = msQualityLevels.QualityLevelCount;
 

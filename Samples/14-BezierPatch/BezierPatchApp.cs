@@ -68,9 +68,12 @@ namespace DX12GameProgramming
             BuildRootSignature();
             BuildDescriptorHeaps();
             BuildShadersAndInputLayout();
+
             BuildQuadPatchGeometry();
+
             BuildMaterials();
             BuildRenderItems();
+
             BuildFrameResources();
             BuildPSOs();
 
@@ -504,6 +507,7 @@ namespace DX12GameProgramming
                 FresnelR0 = new Vector3(0.1f),
                 Roughness = 0.5f
             };
+
             _materials[mat.Name] = mat;
         }
 
@@ -511,6 +515,7 @@ namespace DX12GameProgramming
         {
             MeshGeometry geo = _geometries["quadpatchGeo"];
             SubmeshGeometry submesh = geo.DrawArgs["quadpatch"];
+
             var quadPatchRitem = new RenderItem
             {
                 World = Matrix.Identity,
@@ -523,6 +528,7 @@ namespace DX12GameProgramming
                 StartIndexLocation = submesh.StartIndexLocation,
                 BaseVertexLocation = submesh.BaseVertexLocation
             };
+
             _ritemLayers[RenderLayer.Opaque].Add(quadPatchRitem);
             _allRitems.Add(quadPatchRitem);
         }
@@ -564,24 +570,28 @@ namespace DX12GameProgramming
                 Filter = Filter.MinMagMipPoint,
                 AddressUVW = TextureAddressMode.Wrap
             },
+
             // PointClamp
             new StaticSamplerDescription(ShaderVisibility.All, 1, 0)
             {
                 Filter = Filter.MinMagMipPoint,
                 AddressUVW = TextureAddressMode.Clamp
             },
+
             // LinearWrap
             new StaticSamplerDescription(ShaderVisibility.All, 2, 0)
             {
                 Filter = Filter.MinMagMipLinear,
                 AddressUVW = TextureAddressMode.Wrap
             },
+
             // LinearClamp
             new StaticSamplerDescription(ShaderVisibility.All, 3, 0)
             {
                 Filter = Filter.MinMagMipLinear,
                 AddressUVW = TextureAddressMode.Clamp
             },
+
             // AnisotropicWrap
             new StaticSamplerDescription(ShaderVisibility.All, 4, 0)
             {
@@ -590,6 +600,7 @@ namespace DX12GameProgramming
                 MipLODBias = 0.0f,
                 MaxAnisotropy = 8
             },
+
             // AnisotropicClamp
             new StaticSamplerDescription(ShaderVisibility.All, 5, 0)
             {

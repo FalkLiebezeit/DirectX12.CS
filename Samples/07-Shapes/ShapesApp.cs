@@ -44,14 +44,15 @@ namespace DX12GameProgramming
         private Matrix _view = Matrix.Identity;
 
         private float _theta = 1.5f * MathUtil.Pi;
-        private float _phi = 0.2f * MathUtil.Pi;
+        private float _phi = 0.4f * MathUtil.Pi;
+
         private float _radius = 15.0f;
 
         private Point _lastMousePos;
 
         public ShapesApp()
         {
-            MainWindowCaption = "Shapes";
+            MainWindowCaption = "Shapes - ESC to Quit";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -91,7 +92,7 @@ namespace DX12GameProgramming
 
         protected override void Update(GameTimer gt)
         {
-            UpdateCamera();
+            UpdateCamera(gt);
 
             // Cycle through the circular frame resource array.
             _currFrameResourceIndex = (_currFrameResourceIndex + 1) % NumFrameResources;
@@ -211,8 +212,10 @@ namespace DX12GameProgramming
         protected override void OnKeyUp(Keys keyCode)
         {
             base.OnKeyUp(keyCode);
-            if (keyCode == Keys.D1)
-                _isWireframe = true;
+
+                if (keyCode == Keys.D1)  // if pressed key 1 on the keyboard
+                //if (keyCode == Keys.A)
+                    _isWireframe = !_isWireframe;
         }
 
         protected override void Dispose(bool disposing)
@@ -228,11 +231,12 @@ namespace DX12GameProgramming
             base.Dispose(disposing);
         }
 
-        private void UpdateCamera()
+        private void UpdateCamera(GameTimer gt)
         {
             // Convert Spherical to Cartesian coordinates.
-            _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta);
-            _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta);
+            _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta * gt.TotalTime / 100.0f);
+            _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta * gt.TotalTime / 100.0f);
+
             _eyePos.Y = _radius * MathHelper.Cosf(_phi);
 
             // Build the view matrix.
@@ -491,6 +495,8 @@ namespace DX12GameProgramming
         {
             AddRenderItem(RenderLayer.Opaque, 0, "shapeGeo", "box",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f) * Matrix.Translation(0.0f, 0.5f, 0.0f));
+
+
             AddRenderItem(RenderLayer.Opaque, 1, "shapeGeo", "grid");
 
             int objCBIndex = 2;
@@ -512,6 +518,7 @@ namespace DX12GameProgramming
         {
             MeshGeometry geo = _geometries[geoName];
             SubmeshGeometry submesh = geo.DrawArgs[submeshName];
+
             var renderItem = new RenderItem
             {
                 ObjCBIndex = objCBIndex,
@@ -521,6 +528,7 @@ namespace DX12GameProgramming
                 BaseVertexLocation = submesh.BaseVertexLocation,
                 World = world ?? Matrix.Identity
             };
+
             _ritemLayers[layer].Add(renderItem);
             _allRitems.Add(renderItem);
         }

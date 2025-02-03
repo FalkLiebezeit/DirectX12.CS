@@ -159,7 +159,7 @@ DomainOut DS(PatchTess patchTess,
     float3 p  = lerp(v1, v2, uv.y);
 
     // Displacement mapping
-    p.y = 0.3f*( p.z*sin(p.x) + p.x*cos(p.z) );
+    p.y = 0.2f*( p.z*sin(p.x) + p.x*cos(p.z) );
 
     float4 posW = mul(float4(p, 1.0f), gWorld);
     dout.PosH = mul(posW, gViewProj);

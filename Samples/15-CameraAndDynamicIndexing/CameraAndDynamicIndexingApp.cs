@@ -9,7 +9,7 @@ using ShaderResourceViewDimension = SharpDX.Direct3D12.ShaderResourceViewDimensi
 
 namespace DX12GameProgramming
 {
-    public class CameraAndDynamicIndexingApp : D3DApp
+    public class CameraShapesApp : D3DApp
     {
         private readonly List<FrameResource> _frameResources = new List<FrameResource>(NumFrameResources);
         private readonly List<AutoResetEvent> _fenceEvents = new List<AutoResetEvent>(NumFrameResources);
@@ -39,11 +39,11 @@ namespace DX12GameProgramming
 
         private PassConstants _mainPassCB = PassConstants.Default;
 
-        private readonly Camera _camera = new Camera();
+        private readonly Camera _camera = new();
 
         private Point _lastMousePos;
 
-        public CameraAndDynamicIndexingApp()
+        public CameraShapesApp()
         {
             MainWindowCaption = "Camera and Dynamic Indexing";
         }
@@ -64,7 +64,9 @@ namespace DX12GameProgramming
             BuildRootSignature();
             BuildDescriptorHeaps();
             BuildShadersAndInputLayout();
+
             BuildShapeGeometry();
+
             BuildMaterials();
             BuildRenderItems();
             BuildFrameResources();

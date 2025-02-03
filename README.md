@@ -112,8 +112,8 @@ Tessellates a quad using 4 control points.
 Tessellates a quad using 16 control points cubic Bézier surface.
 <br><br>
 
-## [15-CameraAndDynamicIndexing](Samples/15-CameraAndDynamicIndexing)
-<img src="./Images/CameraAndDynamicIndexing.jpg" height="96px" align="right">
+## [15-CameraShapes](Samples/15-CameraShapes)
+<img src="./Images/CameraShapes.jpg" height="96px" align="right">
 
 Creates a controllable first person camera. Introduces dynamic indexing of texture arrays. Camera is moved using WASD keys and rotated using a mouse.
 

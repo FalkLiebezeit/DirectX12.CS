@@ -51,7 +51,7 @@ namespace DX12GameProgramming
 
         public CubeMapApp()
         {
-            MainWindowCaption = "Cube Map";
+            MainWindowCaption = "Cube Map - ESC to Quit";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];

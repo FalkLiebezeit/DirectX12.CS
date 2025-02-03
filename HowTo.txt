@@ -1,0 +1,4 @@
+copy a     ***.csproj    file to the new folder
+open folder in terminal
+use command -> dotnet restore
+use command -> dotnet build
