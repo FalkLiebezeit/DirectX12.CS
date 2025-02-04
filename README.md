@@ -1,4 +1,4 @@
-# What is this sorcery?
+# Introduction
 
 A collection of *DirectX 12 C# samples* from Frank D. Luna's book [Introduction to 3D Game Programming with Direct3D 12.0](http://d3dcoder.net/d3d12.htm). All the samples have been ported to .NET using [SharpDX](http://sharpdx.org/).
 
