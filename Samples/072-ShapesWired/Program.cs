@@ -7,7 +7,7 @@ namespace DX12GameProgramming
         [STAThread]
         static void Main(string[] args)
         {
-            using (ShapesWired app = new ShapesWired())
+            using (ShapesBasics app = new ShapesBasics())
             {
                 app.Initialize();
                 app.Run();

@@ -232,6 +232,113 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+        public static MeshData CreateEllipse(float radiusX, float radiusY, int sliceCount, int stackCount)
+        {
+            var meshData = new MeshData();
+
+            //
+            // Compute the vertices stating at the top pole and moving down the stacks.
+            //
+
+            // Poles: note that there will be texture coordinate distortion as there is
+            // not a unique point on the texture map to assign to the pole when mapping
+            // a rectangular texture onto a sphere.
+
+            // Top vertex.
+            meshData.Vertices.Add(new Vertex(new Vector3(0, radiusY, 0), new Vector3(0, 1, 0), new Vector3(1, 0, 0), Vector2.Zero));
+
+            float phiStep = MathUtil.Pi / stackCount;
+            float thetaStep = 2f * MathUtil.Pi / sliceCount;
+
+            for (int i = 1; i <= stackCount - 1; i++)
+            {
+                float phi = i * phiStep;
+                for (int j = 0; j <= sliceCount; j++)
+                {
+                    float theta = j * thetaStep;
+
+                    // Spherical to cartesian.
+                    var pos = new Vector3(
+                        radiusX * MathHelper.Sinf(phi) * MathHelper.Cosf(theta),
+                        radiusY * MathHelper.Cosf(phi),
+                        radiusX * MathHelper.Sinf(phi) * MathHelper.Sinf(theta));
+
+                    // Partial derivative of P with respect to theta.
+                    var tan = new Vector3(
+                        -radiusX * MathHelper.Sinf(phi) * MathHelper.Sinf(theta),
+                        0,
+                        radiusX * MathHelper.Sinf(phi) * MathHelper.Cosf(theta));
+
+                    tan.Normalize();
+
+                    Vector3 norm = pos;
+
+                    norm.Normalize();
+
+                    var texCoord = new Vector2(theta / (MathUtil.Pi * 2), phi / MathUtil.Pi);
+
+                    meshData.Vertices.Add(new Vertex(pos, norm, tan, texCoord));
+                }
+            }
+
+            // Bottom vertex.
+            meshData.Vertices.Add(new Vertex(0, -radiusY, 0, 0, -1, 0, 1, 0, 0, 0, 1));
+
+            //
+            // Compute indices for top stack.  The top stack was written first to the vertex buffer
+            // and connects the top pole to the first ring.
+            //
+
+            for (int i = 1; i <= sliceCount; i++)
+            {
+                meshData.Indices32.Add(0);
+                meshData.Indices32.Add(i + 1);
+                meshData.Indices32.Add(i);
+            }
+
+            //
+            // Compute indices for inner stacks (not connected to poles).
+            //
+
+            int baseIndex = 1;
+            int ringVertexCount = sliceCount + 1;
+            for (int i = 0; i < stackCount - 2; i++)
+            {
+                for (int j = 0; j < sliceCount; j++)
+                {
+                    meshData.Indices32.Add(baseIndex + i * ringVertexCount + j);
+                    meshData.Indices32.Add(baseIndex + i * ringVertexCount + j + 1);
+                    meshData.Indices32.Add(baseIndex + (i + 1) * ringVertexCount + j);
+
+                    meshData.Indices32.Add(baseIndex + (i + 1) * ringVertexCount + j);
+                    meshData.Indices32.Add(baseIndex + i * ringVertexCount + j + 1);
+                    meshData.Indices32.Add(baseIndex + (i + 1) * ringVertexCount + j + 1);
+                }
+            }
+
+            //
+            // Compute indices for bottom stack.  The bottom stack was written last to the vertex buffer
+            // and connects the bottom pole to the bottom ring.
+            //
+
+            // South pole vertex was added last.
+            int southPoleIndex = meshData.Vertices.Count - 1;
+
+            // Offset the indices to the index of the first vertex in the last ring.
+            baseIndex = southPoleIndex - ringVertexCount;
+
+            for (int i = 0; i < sliceCount; i++)
+            {
+                meshData.Indices32.Add(southPoleIndex);
+                meshData.Indices32.Add(baseIndex + i);
+                meshData.Indices32.Add(baseIndex + i + 1);
+            }
+            return meshData;
+        }
+
+
+        /*
+        
         public static MeshData CreateGeosphere(float radius, int numSubdivisions)
         {
             var meshData = new MeshData();
@@ -297,6 +404,8 @@ namespace DX12GameProgramming
 
             return meshData;
         }
+        */
+
 
         public static MeshData CreateCylinder(float bottomRadius, float topRadius,
             float height, int sliceCount, int stackCount)

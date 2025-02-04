@@ -8,7 +8,7 @@ using Resource = SharpDX.Direct3D12.Resource;
 
 namespace DX12GameProgramming
 {
-    public class ShapesWired : D3DApp
+    public class ShapesBasics : D3DApp
     {
         private readonly List<FrameResource> _frameResources = new List<FrameResource>(NumFrameResources);
         private readonly List<AutoResetEvent> _fenceEvents = new List<AutoResetEvent>(NumFrameResources);
@@ -51,9 +51,9 @@ namespace DX12GameProgramming
 
         private Point _lastMousePos;
 
-        public ShapesWired()
+        public ShapesBasics()
         {
-            MainWindowCaption = "wired Shapes";
+            MainWindowCaption = "basic shapes";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -416,22 +416,43 @@ namespace DX12GameProgramming
             var vertices = new List<Vertex>();
             var indices = new List<short>();
 
+
+            /*
             SubmeshGeometry grid        = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), Color.Gainsboro, vertices, indices);
 
             SubmeshGeometry box         = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
             SubmeshGeometry sphere      = AppendMeshData(GeometryGenerator.CreateSphere(0.5f, 20, 20), Color.Crimson, vertices, indices);
             SubmeshGeometry cylinder    = AppendMeshData(GeometryGenerator.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+            */
+
+            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), Color.Gainsboro, vertices, indices);
+
+            SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
+
+            SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkGreen, vertices, indices);
+
+            SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(1.5f, 20, 20), Color.Crimson, vertices, indices);
+
+            SubmeshGeometry ellipse = AppendMeshData(GeometryGenerator.CreateEllipse(1.5f, 2.5f, 20, 20), Color.Black, vertices, indices);
+
+            SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+
+           // SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+
+
 
 
             var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "shapeGeo");
 
 
             geo.DrawArgs["grid"] = grid;
-
             geo.DrawArgs["box"] = box;
+            geo.DrawArgs["quad"] = quad;
             geo.DrawArgs["sphere"] = sphere;
+            geo.DrawArgs["ellipse"] = ellipse;
             geo.DrawArgs["cylinder"] = cylinder;
-            
+            //geo.DrawArgs["torus"] = torus;
+
 
             _geometries[geo.Name] = geo;
         }
@@ -516,16 +537,26 @@ namespace DX12GameProgramming
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid");
 
 
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
+                world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.8f, -5.0f));
 
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
+               world: Matrix.Scaling(1.0f, 1.0f, 1.0f) * Matrix.Translation(4.0f, 2.5f, 1.0f));
 
-            AddRenderItem(RenderLayer.Opaque,j++, "shapeGeo", "box",
-                world: Matrix.Scaling(2.0f, 2.0f, 2.0f) * Matrix.Translation(0.0f, 2.0f, -5.0f));
-           
-            AddRenderItem(RenderLayer.Opaque,j++, "shapeGeo", "cylinder",
-                    world: Matrix.Translation(-2.0f, 2.5f, 10.0f ));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
-                    world: Matrix.Translation(2.0f, 1.5f, 10.0f ));
+                    world: Matrix.Translation(2.0f, 1.5f, 6.0f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
+                    world: Matrix.Translation(-6.0f, 2.5f, -3.0f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder",
+                   world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+
+            /*
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
+                   world: Matrix.Translation(-2.0f, 1.5f, 3.0f));
+            */
 
         }
 
