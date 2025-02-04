@@ -11,7 +11,7 @@ using Resource = SharpDX.Direct3D12.Resource;
 
 namespace DX12GameProgramming
 {
-    public class LitColumnsApp : D3DApp
+    public class ShapesModelApp : D3DApp
     {
         private readonly List<FrameResource> _frameResources = new List<FrameResource>(NumFrameResources);
         private readonly List<AutoResetEvent> _fenceEvents = new List<AutoResetEvent>(NumFrameResources);
@@ -49,9 +49,9 @@ namespace DX12GameProgramming
 
         private Point _lastMousePos;
 
-        public LitColumnsApp()
+        public ShapesModelApp()
         {
-            MainWindowCaption = "Lit Columns";
+            MainWindowCaption = "shapes & model";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];

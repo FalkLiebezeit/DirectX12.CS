@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using SharpDX;
+using SharpDX.Direct3D;
 using SharpDX.Direct3D12;
 using SharpDX.DXGI;
 using Resource = SharpDX.Direct3D12.Resource;
@@ -9,10 +11,13 @@ using ShaderResourceViewDimension = SharpDX.Direct3D12.ShaderResourceViewDimensi
 
 namespace DX12GameProgramming
 {
-    public class TexColumnsApp : D3DApp
+    // TODO: Enable alpha to coverage for tree sprites
+    // TODO: Enable 4x MSAA for alpha to coverage to take effect
+    public class TreeBillboardsApp : D3DApp
     {
         private readonly List<FrameResource> _frameResources = new List<FrameResource>(NumFrameResources);
         private readonly List<AutoResetEvent> _fenceEvents = new List<AutoResetEvent>(NumFrameResources);
+
         private int _currFrameResourceIndex;
 
         private RootSignature _rootSignature;
@@ -24,19 +29,26 @@ namespace DX12GameProgramming
         private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
         private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
         private readonly Dictionary<string, ShaderBytecode> _shaders = new Dictionary<string, ShaderBytecode>();
-
-        private PipelineState _opaquePso;
+        private readonly Dictionary<string, PipelineState> _psos = new Dictionary<string, PipelineState>();
 
         private InputLayoutDescription _inputLayout;
+        private InputLayoutDescription _treeSpriteInputLayout;
+
+        private RenderItem _wavesRitem;
 
         // List of all the render items.
         private readonly List<RenderItem> _allRitems = new List<RenderItem>();
 
         // Render items divided by PSO.
-        private readonly Dictionary<RenderLayer, List<RenderItem>> _ritemLayers = new Dictionary<RenderLayer, List<RenderItem>>(1)
+        private readonly Dictionary<RenderLayer, List<RenderItem>> _ritemLayers = new Dictionary<RenderLayer, List<RenderItem>>
         {
-            [RenderLayer.Opaque] = new List<RenderItem>()
+            [RenderLayer.Opaque] = new List<RenderItem>(),
+            [RenderLayer.Transparent] = new List<RenderItem>(),
+            [RenderLayer.AlphaTested] = new List<RenderItem>(),
+            [RenderLayer.AlphaTestedTreeSprites] = new List<RenderItem>()
         };
+
+        private Waves _waves;
 
         private PassConstants _mainPassCB = PassConstants.Default;
 
@@ -45,14 +57,16 @@ namespace DX12GameProgramming
         private Matrix _view = Matrix.Identity;
 
         private float _theta = 1.5f * MathUtil.Pi;
-        private float _phi = 0.4f * MathUtil.Pi;
-        private float _radius = 15.0f;
+        private float _phi = MathUtil.PiOverTwo - 0.1f;
+        private float _radius = 120.0f;
+
+        private float _tBase;
 
         private Point _lastMousePos;
 
-        public TexColumnsApp()
+        public TreeBillboardsApp()
         {
-            MainWindowCaption = "textured columns";
+            MainWindowCaption = "tree billboards basics";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -65,14 +79,26 @@ namespace DX12GameProgramming
             // Reset the command list to prep for initialization commands.
             CommandList.Reset(DirectCmdListAlloc, null);
 
+            _waves = new Waves(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
+
             LoadTextures();
+
             BuildRootSignature();
             BuildDescriptorHeaps();
             BuildShadersAndInputLayout();
-            BuildShapeGeometry();
+
+            /*
+            BuildLandGeometry();
+            BuildWavesGeometry();
+            BuildBoxGeometry();
+            */
+
+            BuildTreeSpritesGeometry();
+
             BuildMaterials();
             BuildRenderItems();
             BuildFrameResources();
+
             BuildPSOs();
 
             // Execute the initialization commands.
@@ -106,9 +132,11 @@ namespace DX12GameProgramming
                 CurrentFenceEvent.WaitOne();
             }
 
+            AnimateMaterials(gt);
             UpdateObjectCBs();
             UpdateMaterialCBs();
             UpdateMainPassCB(gt);
+            UpdateWaves(gt);
         }
 
         protected override void Draw(GameTimer gt)
@@ -121,7 +149,7 @@ namespace DX12GameProgramming
 
             // A command list can be reset after it has been added to the command queue via ExecuteCommandList.
             // Reusing the command list reuses memory.
-            CommandList.Reset(cmdListAlloc, _opaquePso);
+            CommandList.Reset(cmdListAlloc, _psos["opaque"]);
 
             CommandList.SetViewport(Viewport);
             CommandList.SetScissorRectangles(ScissorRectangle);
@@ -130,7 +158,7 @@ namespace DX12GameProgramming
             CommandList.ResourceBarrierTransition(CurrentBackBuffer, ResourceStates.Present, ResourceStates.RenderTarget);
 
             // Clear the back buffer and depth buffer.
-            CommandList.ClearRenderTargetView(CurrentBackBufferView, Color.LightSteelBlue);
+            CommandList.ClearRenderTargetView(CurrentBackBufferView, new Color(_mainPassCB.FogColor));
             CommandList.ClearDepthStencilView(DepthStencilView, ClearFlags.FlagsDepth | ClearFlags.FlagsStencil, 1.0f, 0);
 
             // Specify the buffers we are going to render to.
@@ -142,8 +170,16 @@ namespace DX12GameProgramming
 
             Resource passCB = CurrFrameResource.PassCB.Resource;
             CommandList.SetGraphicsRootConstantBufferView(2, passCB.GPUVirtualAddress);
-
             DrawRenderItems(CommandList, _ritemLayers[RenderLayer.Opaque]);
+
+            CommandList.PipelineState = _psos["alphaTested"];
+            DrawRenderItems(CommandList, _ritemLayers[RenderLayer.AlphaTested]);
+
+            CommandList.PipelineState = _psos["treeSprites"];
+            DrawRenderItems(CommandList, _ritemLayers[RenderLayer.AlphaTestedTreeSprites]);
+
+            CommandList.PipelineState = _psos["transparent"];
+            DrawRenderItems(CommandList, _ritemLayers[RenderLayer.Transparent]);
 
             // Indicate a state transition on the resource usage.
             CommandList.ResourceBarrierTransition(CurrentBackBuffer, ResourceStates.RenderTarget, ResourceStates.Present);
@@ -190,8 +226,8 @@ namespace DX12GameProgramming
             else if ((button & MouseButtons.Right) != 0)
             {
                 // Make each pixel correspond to a quarter of a degree.
-                float dx = 0.05f * (location.X - _lastMousePos.X);
-                float dy = 0.05f * (location.Y - _lastMousePos.Y);
+                float dx = 0.2f * (location.X - _lastMousePos.X);
+                float dy = 0.2f * (location.Y - _lastMousePos.Y);
 
                 // Update the camera radius based on input.
                 _radius += dx - dy;
@@ -209,10 +245,11 @@ namespace DX12GameProgramming
             {
                 _srvDescriptorHeap?.Dispose();
                 _rootSignature?.Dispose();
-                _opaquePso?.Dispose();
+
                 foreach (Texture texture in _textures.Values) texture.Dispose();
                 foreach (FrameResource frameResource in _frameResources) frameResource.Dispose();
                 foreach (MeshGeometry geometry in _geometries.Values) geometry.Dispose();
+                foreach (PipelineState pso in _psos.Values) pso.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -226,6 +263,34 @@ namespace DX12GameProgramming
 
             // Build the view matrix.
             _view = Matrix.LookAtLH(_eyePos, Vector3.Zero, Vector3.Up);
+        }
+
+        private void AnimateMaterials(GameTimer gt)
+        {
+            // Scroll the water material texture coordinates.
+            Material waterMat = _materials["water"];
+
+            Matrix matTransform = waterMat.MatTransform;
+
+            float tu = matTransform.M41;
+            float tv = matTransform.M42;
+
+            tu += 0.1f * gt.DeltaTime;
+            tv += 0.02f * gt.DeltaTime;
+
+            if (tu >= 1.0f)
+                tu -= 1.0f;
+
+            if (tv >= 1.0f)
+                tv -= 1.0f;
+
+            matTransform.M41 = tu;
+            matTransform.M42 = tv;
+
+            waterMat.MatTransform = matTransform;
+
+            // Material has changed, so need to update cbuffer.
+            waterMat.NumFramesDirty = NumFrameResources;
         }
 
         private void UpdateObjectCBs()
@@ -302,14 +367,58 @@ namespace DX12GameProgramming
             _mainPassCB.Lights[2].Direction = new Vector3(0.0f, -0.707f, -0.707f);
             _mainPassCB.Lights[2].Strength = new Vector3(0.15f);
 
+            // Main pass stored in index 0.
             CurrFrameResource.PassCB.CopyData(0, ref _mainPassCB);
+        }
+
+        private void UpdateWaves(GameTimer gt)
+        {
+            /*
+            // Every quarter second, generate a random wave.
+            if ((Timer.TotalTime - _tBase) >= 0.25f)
+            {
+                _tBase += 0.25f;
+
+                int i = MathHelper.Rand(4, _waves.RowCount - 5);
+                int j = MathHelper.Rand(4, _waves.ColumnCount - 5);
+
+                float r = MathHelper.Randf(0.2f, 0.5f);
+
+                _waves.Disturb(i, j, r);
+            }
+
+            // Update the wave simulation.
+            _waves.Update(gt.DeltaTime);
+
+            // Update the wave vertex buffer with the new solution.
+            UploadBuffer<Vertex> currWavesVB = CurrFrameResource.WavesVB;
+            for (int i = 0; i < _waves.VertexCount; ++i)
+            {
+                var v = new Vertex
+                {
+                    Pos = _waves.Position(i),
+                    Normal = _waves.Normal(i),
+                };
+                // Derive tex-coords from position by
+                // mapping [-w/2,w/2] -. [0,1]
+                v.TexC = new Vector2(
+                    0.5f + v.Pos.X / _waves.Width,
+                    0.5f - v.Pos.Z / _waves.Depth);
+
+                currWavesVB.CopyData(i, ref v);
+            }
+
+            // Set the dynamic VB of the wave renderitem to the current frame VB.
+            _wavesRitem.Geo.VertexBufferGPU = currWavesVB.Resource;
+            */
         }
 
         private void LoadTextures()
         {
-            AddTexture("bricksTex", "bricks.dds");
-            AddTexture("stoneTex", "stone.dds");
-            AddTexture("tileTex", "tile.dds");
+            AddTexture("grassTex", "grass.dds");
+            AddTexture("waterTex", "water1.dds");
+            AddTexture("fenceTex", "WireFence.dds");
+            AddTexture("treeArrayTex", "treeArray2.dds");
         }
 
         private void AddTexture(string name, string filename)
@@ -325,14 +434,20 @@ namespace DX12GameProgramming
 
         private void BuildRootSignature()
         {
+            var texTable = new DescriptorRange(DescriptorRangeType.ShaderResourceView, 1, 0);
+
+            var descriptor1 = new RootDescriptor(0, 0);
+            var descriptor2 = new RootDescriptor(1, 0);
+            var descriptor3 = new RootDescriptor(2, 0);
+
             // Root parameter can be a table, root descriptor or root constants.
             // Perfomance TIP: Order from most frequent to least frequent.
             var slotRootParameters = new[]
             {
-                new RootParameter(ShaderVisibility.All, new DescriptorRange(DescriptorRangeType.ShaderResourceView, 1, 0)),
-                new RootParameter(ShaderVisibility.All, new RootDescriptor(0, 0), RootParameterType.ConstantBufferView),
-                new RootParameter(ShaderVisibility.All, new RootDescriptor(1, 0), RootParameterType.ConstantBufferView),
-                new RootParameter(ShaderVisibility.All, new RootDescriptor(2, 0), RootParameterType.ConstantBufferView)
+                new RootParameter(ShaderVisibility.Pixel, texTable),
+                new RootParameter(ShaderVisibility.All, descriptor1, RootParameterType.ConstantBufferView),
+                new RootParameter(ShaderVisibility.All, descriptor2, RootParameterType.ConstantBufferView),
+                new RootParameter(ShaderVisibility.All, descriptor3, RootParameterType.ConstantBufferView)
             };
 
             // A root signature is an array of root parameters.
@@ -351,7 +466,7 @@ namespace DX12GameProgramming
             //
             var srvHeapDesc = new DescriptorHeapDescription
             {
-                DescriptorCount = 3,
+                DescriptorCount = 4,
                 Type = DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView,
                 Flags = DescriptorHeapFlags.ShaderVisible
             };
@@ -365,10 +480,11 @@ namespace DX12GameProgramming
 
             Resource[] tex2DList =
             {
-                _textures["bricksTex"].Resource,
-                _textures["stoneTex"].Resource,
-                _textures["tileTex"].Resource
+                _textures["grassTex"].Resource,
+                _textures["waterTex"].Resource,
+                _textures["fenceTex"].Resource
             };
+            Resource treeArrayTex = _textures["treeArrayTex"].Resource;
 
             var srvDesc = new ShaderResourceViewDescription
             {
@@ -378,7 +494,6 @@ namespace DX12GameProgramming
                 {
                     MostDetailedMip = 0,
                     MipLevels = -1,
-                    ResourceMinLODClamp = 0.0f
                 }
             };
 
@@ -390,12 +505,35 @@ namespace DX12GameProgramming
                 // Next descriptor.
                 hDescriptor += CbvSrvUavDescriptorSize;
             }
+
+            srvDesc.Format = treeArrayTex.Description.Format;
+            srvDesc.Texture2DArray.MostDetailedMip = 0;
+            srvDesc.Texture2DArray.MipLevels = -1;
+            srvDesc.Texture2DArray.FirstArraySlice = 0;
+            srvDesc.Texture2DArray.ArraySize = treeArrayTex.Description.DepthOrArraySize;
+            Device.CreateShaderResourceView(treeArrayTex, srvDesc, hDescriptor);
         }
 
         private void BuildShadersAndInputLayout()
         {
+            ShaderMacro[] defines =
+            {
+                new ShaderMacro("FOG", "1")
+            };
+
+            ShaderMacro[] alphaTestDefines =
+            {
+                new ShaderMacro("FOG", "1"),
+                new ShaderMacro("ALPHA_TEST", "1")
+            };
+
             _shaders["standardVS"] = D3DUtil.CompileShader("Shaders\\Default.hlsl", "VS", "vs_5_0");
-            _shaders["opaquePS"] = D3DUtil.CompileShader("Shaders\\Default.hlsl", "PS", "ps_5_0");
+            _shaders["opaquePS"] = D3DUtil.CompileShader("Shaders\\Default.hlsl", "PS", "ps_5_0", defines);
+            _shaders["alphaTestedPS"] = D3DUtil.CompileShader("Shaders\\Default.hlsl", "PS", "ps_5_0", alphaTestDefines);
+
+            _shaders["treeSpriteVS"] = D3DUtil.CompileShader("Shaders\\TreeSprite.hlsl", "VS", "vs_5_0");
+            _shaders["treeSpriteGS"] = D3DUtil.CompileShader("Shaders\\TreeSprite.hlsl", "GS", "gs_5_0");
+            _shaders["treeSpritePS"] = D3DUtil.CompileShader("Shaders\\TreeSprite.hlsl", "PS", "ps_5_0", alphaTestDefines);
 
             _inputLayout = new InputLayoutDescription(new[]
             {
@@ -403,61 +541,154 @@ namespace DX12GameProgramming
                 new InputElement("NORMAL", 0, Format.R32G32B32_Float, 12, 0),
                 new InputElement("TEXCOORD", 0, Format.R32G32_Float, 24, 0)
             });
+
+            _treeSpriteInputLayout = new InputLayoutDescription(new[]
+            {
+                new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0),
+                new InputElement("SIZE", 0, Format.R32G32_Float, 12, 0),
+            });
         }
 
-        private void BuildShapeGeometry()
+        private void BuildLandGeometry()
         {
+            GeometryGenerator.MeshData grid = GeometryGenerator.CreateGrid(160.0f, 160.0f, 50, 50);
+
             //
-            // We are concatenating all the geometry into one big vertex/index buffer. So
-            // define the regions in the buffer each submesh covers.
+            // Extract the vertex elements we are interested and apply the height function to
+            // each vertex. In addition, color the vertices based on their height so we have
+            // sandy looking beaches, grassy low hills, and snow mountain peaks.
             //
 
-            var vertices = new List<Vertex>();
-            var indices = new List<short>();
+            var vertices = new Vertex[grid.Vertices.Count];
+            for (int i = 0; i < grid.Vertices.Count; i++)
+            {
+                Vector3 p = grid.Vertices[i].Position;
+                vertices[i].Pos = p;
+                vertices[i].Pos.Y = GetHillsHeight(p.X, p.Z);
+                vertices[i].Normal = GetHillsNormal(p.X, p.Z);
+                vertices[i].TexC = grid.Vertices[i].TexC;
+            }
 
-            SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.0f, 1.0f, 1.0f, 3), vertices, indices);
-            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), vertices, indices);
-            SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(0.5f, 20, 20), vertices, indices);
-            SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20), vertices, indices);
+            List<short> indices = grid.GetIndices16();
 
-            var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "shapeGeo");
+            var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "landGeo");
 
-            geo.DrawArgs["box"] = box;
-            geo.DrawArgs["grid"] = grid;
-            geo.DrawArgs["sphere"] = sphere;
-            geo.DrawArgs["cylinder"] = cylinder;
+            var submesh = new SubmeshGeometry
+            {
+                IndexCount = indices.Count,
+                StartIndexLocation = 0,
+                BaseVertexLocation = 0
+            };
+
+            geo.DrawArgs["grid"] = submesh;
+
+            _geometries["landGeo"] = geo;
+        }
+
+        private void BuildWavesGeometry()
+        {
+            var indices = new short[3 * _waves.TriangleCount]; // 3 indices per face.
+            Debug.Assert(_waves.VertexCount < short.MaxValue);
+
+            // Iterate over each quad.
+            int m = _waves.RowCount;
+            int n = _waves.ColumnCount;
+            int k = 0;
+            for (int i = 0; i < m - 1; ++i)
+            {
+                for (int j = 0; j < n - 1; ++j)
+                {
+                    indices[k + 0] = (short)(i * n + j);
+                    indices[k + 1] = (short)(i * n + j + 1);
+                    indices[k + 2] = (short)((i + 1) * n + j);
+
+                    indices[k + 3] = (short)((i + 1) * n + j);
+                    indices[k + 4] = (short)(i * n + j + 1);
+                    indices[k + 5] = (short)((i + 1) * n + j + 1);
+
+                    k += 6; // Next quad.
+                }
+            }
+
+            // Vertices are set dynamically.
+            var geo = MeshGeometry.New(Device, CommandList, indices, "waterGeo");
+            geo.VertexByteStride = Utilities.SizeOf<Vertex>();
+            geo.VertexBufferByteSize = geo.VertexByteStride * _waves.VertexCount;
+
+            var submesh = new SubmeshGeometry
+            {
+                IndexCount = indices.Length,
+                StartIndexLocation = 0,
+                BaseVertexLocation = 0
+            };
+
+            geo.DrawArgs["grid"] = submesh;
+
+            _geometries["waterGeo"] = geo;
+        }
+
+        private void BuildBoxGeometry()
+        {
+            GeometryGenerator.MeshData box = GeometryGenerator.CreateBox(8.0f, 8.0f, 8.0f, 3);
+
+            var boxSubmesh = new SubmeshGeometry
+            {
+                IndexCount = box.Indices32.Count,
+                StartIndexLocation = 0,
+                BaseVertexLocation = 0
+            };
+
+            Vertex[] vertices = box.Vertices.Select(x => new Vertex
+            {
+                Pos = x.Position,
+                Normal = x.Normal,
+                TexC = x.TexC
+            }).ToArray();
+
+            short[] indices = box.GetIndices16().ToArray();
+
+            var geo = MeshGeometry.New(Device, CommandList, vertices, indices, "boxGeo");
+
+            geo.DrawArgs["box"] = boxSubmesh;
 
             _geometries[geo.Name] = geo;
         }
 
-        private SubmeshGeometry AppendMeshData(GeometryGenerator.MeshData meshData, List<Vertex> vertices, List<short> indices)
+        private void BuildTreeSpritesGeometry()
         {
-            //
-            // Define the SubmeshGeometry that cover different
-            // regions of the vertex/index buffers.
-            //
+            const int treeCount = 16;
+            var vertices = new TreeSpriteVertex[treeCount];
+
+            for (int i = 0; i < treeCount; i++)
+            {
+                float x = MathHelper.Randf(-45.0f, 45.0f);
+                float z = MathHelper.Randf(-45.0f, 45.0f);
+                float y = 0.0f; // GetHillsHeight(x, z);
+
+                // Move tree slightly above land height.
+                y += 8.0f;
+
+                vertices[i].Pos = new Vector3(x, y, z);
+                vertices[i].Size = new Vector2(20.0f, 20.0f);
+            }
+
+            short[] indices =
+            {
+                0, 1, 2, 3, 4, 5, 6, 7,
+                8, 9, 10, 11, 12, 13, 14, 15
+            };
 
             var submesh = new SubmeshGeometry
             {
-                IndexCount = meshData.Indices32.Count,
-                StartIndexLocation = indices.Count,
-                BaseVertexLocation = vertices.Count
+                IndexCount = indices.Length,
+                StartIndexLocation = 0,
+                BaseVertexLocation = 0
             };
 
-            //
-            // Extract the vertex elements we are interested in and pack the
-            // vertices and indices of all the meshes into one vertex/index buffer.
-            //
+            var geo = MeshGeometry.New(Device, CommandList, vertices, indices, "treeSpritesGeo");
+            geo.DrawArgs["points"] = submesh;
 
-            vertices.AddRange(meshData.Vertices.Select(vertex => new Vertex
-            {
-                Pos = vertex.Position,
-                Normal = vertex.Normal,
-                TexC = vertex.TexC
-            }));
-            indices.AddRange(meshData.GetIndices16());
-
-            return submesh;
+            _geometries[geo.Name] = geo;
         }
 
         private void BuildPSOs()
@@ -475,21 +706,69 @@ namespace DX12GameProgramming
                 RasterizerState = RasterizerStateDescription.Default(),
                 BlendState = BlendStateDescription.Default(),
                 DepthStencilState = DepthStencilStateDescription.Default(),
-                SampleMask = unchecked((int)uint.MaxValue),
+                SampleMask = unchecked((int)0xFFFFFFFF),
                 PrimitiveTopologyType = PrimitiveTopologyType.Triangle,
                 RenderTargetCount = 1,
                 SampleDescription = new SampleDescription(MsaaCount, MsaaQuality),
                 DepthStencilFormat = DepthStencilFormat
             };
             opaquePsoDesc.RenderTargetFormats[0] = BackBufferFormat;
-            _opaquePso = Device.CreateGraphicsPipelineState(opaquePsoDesc);
+
+            _psos["opaque"] = Device.CreateGraphicsPipelineState(opaquePsoDesc);
+
+            //
+            // PSO for transparent objects.
+            //
+
+            GraphicsPipelineStateDescription transparentPsoDesc = opaquePsoDesc.Copy();
+
+            var transparencyBlendDesc = new RenderTargetBlendDescription
+            {
+                IsBlendEnabled = true,
+                LogicOpEnable = false,
+                SourceBlend = BlendOption.SourceAlpha,
+                DestinationBlend = BlendOption.InverseSourceAlpha,
+                BlendOperation = BlendOperation.Add,
+                SourceAlphaBlend = BlendOption.One,
+                DestinationAlphaBlend = BlendOption.Zero,
+                AlphaBlendOperation = BlendOperation.Add,
+                LogicOp = LogicOperation.Noop,
+                RenderTargetWriteMask = ColorWriteMaskFlags.All
+            };
+            transparentPsoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
+
+            _psos["transparent"] = Device.CreateGraphicsPipelineState(transparentPsoDesc);
+
+            //
+            // PSO for alpha tested objects.
+            //
+
+            GraphicsPipelineStateDescription alphaTestedPsoDesc = opaquePsoDesc.Copy();
+            alphaTestedPsoDesc.PixelShader = _shaders["alphaTestedPS"];
+            alphaTestedPsoDesc.RasterizerState.CullMode = CullMode.None;
+
+            _psos["alphaTested"] = Device.CreateGraphicsPipelineState(alphaTestedPsoDesc);
+
+            //
+            // PSO for tree sprites.
+            //
+
+            GraphicsPipelineStateDescription treeSpritePsoDesc = opaquePsoDesc.Copy();
+            treeSpritePsoDesc.VertexShader = _shaders["treeSpriteVS"];
+            treeSpritePsoDesc.GeometryShader = _shaders["treeSpriteGS"];
+            treeSpritePsoDesc.PixelShader = _shaders["treeSpritePS"];
+            treeSpritePsoDesc.PrimitiveTopologyType = PrimitiveTopologyType.Point;
+            treeSpritePsoDesc.InputLayout = _treeSpriteInputLayout;
+            treeSpritePsoDesc.RasterizerState.CullMode = CullMode.None;
+
+            _psos["treeSprites"] = Device.CreateGraphicsPipelineState(treeSpritePsoDesc);
         }
 
         private void BuildFrameResources()
         {
             for (int i = 0; i < NumFrameResources; i++)
             {
-                _frameResources.Add(new FrameResource(Device, 1, _allRitems.Count, _materials.Count));
+                _frameResources.Add(new FrameResource(Device, 2, _allRitems.Count, _materials.Count, _waves.VertexCount));
                 _fenceEvents.Add(new AutoResetEvent(false));
             }
         }
@@ -498,30 +777,41 @@ namespace DX12GameProgramming
         {
             AddMaterial(new Material
             {
-                Name = "bricks0",
+                Name = "grass",
                 MatCBIndex = 0,
                 DiffuseSrvHeapIndex = 0,
-                DiffuseAlbedo = Color.White.ToVector4(),
-                FresnelR0 = new Vector3(0.02f),
-                Roughness = 0.1f
+                DiffuseAlbedo = new Vector4(1.0f),
+                FresnelR0 = new Vector3(0.01f),
+                Roughness = 0.125f
             });
+            // This is not a good water material definition, but we do not have all the rendering
+            // tools we need (transparency, environment reflection), so we fake it for now.
             AddMaterial(new Material
             {
-                Name = "stone0",
+                Name = "water",
                 MatCBIndex = 1,
                 DiffuseSrvHeapIndex = 1,
-                DiffuseAlbedo = Color.White.ToVector4(),
-                FresnelR0 = new Vector3(0.05f),
-                Roughness = 0.3f
+                DiffuseAlbedo = new Vector4(1.0f, 1.0f, 1.0f, 0.5f),
+                FresnelR0 = new Vector3(0.1f),
+                Roughness = 0.0f
             });
             AddMaterial(new Material
             {
-                Name = "tile0",
+                Name = "wirefence",
                 MatCBIndex = 2,
                 DiffuseSrvHeapIndex = 2,
-                DiffuseAlbedo = Color.White.ToVector4(),
+                DiffuseAlbedo = new Vector4(1.0f),
                 FresnelR0 = new Vector3(0.02f),
-                Roughness = 0.2f
+                Roughness = 0.25f
+            });
+            AddMaterial(new Material
+            {
+                Name = "treeSprites",
+                MatCBIndex = 3,
+                DiffuseSrvHeapIndex = 3,
+                DiffuseAlbedo = new Vector4(1.0f),
+                FresnelR0 = new Vector3(0.01f),
+                Roughness = 0.125f
             });
         }
 
@@ -529,28 +819,25 @@ namespace DX12GameProgramming
 
         private void BuildRenderItems()
         {
-            AddRenderItem(RenderLayer.Opaque, 0, "stone0", "shapeGeo", "box",
-                world: Matrix.Scaling(2.0f, 2.0f, 2.0f) * Matrix.Translation(0.0f, 0.5f, 0.0f));
-            AddRenderItem(RenderLayer.Opaque, 1, "tile0", "shapeGeo", "grid",
-                texTransform: Matrix.Scaling(8.0f, 8.0f, 1.0f));
+            
+                        /*
+            _wavesRitem = AddRenderItem(RenderLayer.Transparent, 0, "water", "waterGeo", "grid",
+                texTransform: Matrix.Scaling(1.0f, 1.0f, 1.0f));
 
-            int objCBIndex = 2;
-            for (int i = 0; i < 5; ++i)
-            {
-                AddRenderItem(RenderLayer.Opaque, objCBIndex++, "bricks0", "shapeGeo", "cylinder",
-                    world: Matrix.Translation(-5.0f, 1.5f, -10.0f + i * 5.0f));
-                AddRenderItem(RenderLayer.Opaque, objCBIndex++, "bricks0", "shapeGeo", "cylinder",
-                    world: Matrix.Translation(+5.0f, 1.5f, -10.0f + i * 5.0f));
 
-                AddRenderItem(RenderLayer.Opaque, objCBIndex++, "stone0", "shapeGeo", "sphere",
-                    world: Matrix.Translation(-5.0f, 3.5f, -10.0f + i * 5.0f));
-                AddRenderItem(RenderLayer.Opaque, objCBIndex++, "stone0", "shapeGeo", "sphere",
-                    world: Matrix.Translation(+5.0f, 3.5f, -10.0f + i * 5.0f));
-            }
+            AddRenderItem(RenderLayer.Opaque, 1, "grass", "landGeo", "grid",
+                texTransform: Matrix.Scaling(5.0f, 5.0f, 1.0f));
+
+            AddRenderItem(RenderLayer.AlphaTested, 2, "wirefence", "boxGeo", "box",
+                world: Matrix.Translation(3.0f, 2.0f, -9.0f));
+            */
+
+            AddRenderItem(RenderLayer.AlphaTestedTreeSprites, 0, "treeSprites", "treeSpritesGeo", "points",
+                topology: PrimitiveTopology.PointList);
         }
 
-        private void AddRenderItem(RenderLayer layer, int objCBIndex, string matName, string geoName, string submeshName,
-            Matrix? world = null, Matrix? texTransform = null)
+        private RenderItem AddRenderItem(RenderLayer layer, int objCBIndex, string matName, string geoName, string submeshName,
+            Matrix? world = null, Matrix? texTransform = null, PrimitiveTopology topology = PrimitiveTopology.TriangleList)
         {
             MeshGeometry geo = _geometries[geoName];
             SubmeshGeometry submesh = geo.DrawArgs[submeshName];
@@ -563,10 +850,12 @@ namespace DX12GameProgramming
                 StartIndexLocation = submesh.StartIndexLocation,
                 BaseVertexLocation = submesh.BaseVertexLocation,
                 World = world ?? Matrix.Identity,
-                TexTransform = texTransform ?? Matrix.Identity
+                TexTransform = texTransform ?? Matrix.Identity,
+                PrimitiveType = topology
             };
             _ritemLayers[layer].Add(renderItem);
             _allRitems.Add(renderItem);
+            return renderItem;
         }
 
         private void DrawRenderItems(GraphicsCommandList cmdList, List<RenderItem> ritems)
@@ -641,5 +930,13 @@ namespace DX12GameProgramming
                 MaxAnisotropy = 8
             }
         };
+
+        private static float GetHillsHeight(float x, float z) => 0.3f * (z * MathHelper.Sinf(0.1f * x) + x * MathHelper.Cosf(0.1f * z));
+
+        private static Vector3 GetHillsNormal(float x, float z) => Vector3.Normalize(new Vector3(
+            // n = (-df/dx, 1, -df/dz)
+            -0.03f * z * MathHelper.Cosf(0.1f * x) - 0.3f * MathHelper.Cosf(0.1f * z),
+            1.0f,
+            -0.3f * MathHelper.Sinf(0.1f * x) + 0.03f * x * MathHelper.Sinf(0.1f * z)));
     }
 }

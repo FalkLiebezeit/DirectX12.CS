@@ -437,7 +437,7 @@ namespace DX12GameProgramming
 
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
 
-           // SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+            SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.SteelBlue, vertices, indices);
 
 
 
@@ -451,7 +451,7 @@ namespace DX12GameProgramming
             geo.DrawArgs["sphere"] = sphere;
             geo.DrawArgs["ellipse"] = ellipse;
             geo.DrawArgs["cylinder"] = cylinder;
-            //geo.DrawArgs["torus"] = torus;
+            geo.DrawArgs["torus"] = torus;
 
 
             _geometries[geo.Name] = geo;
@@ -548,15 +548,15 @@ namespace DX12GameProgramming
                     world: Matrix.Translation(2.0f, 1.5f, 6.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
-                    world: Matrix.Translation(-6.0f, 2.5f, -3.0f));
+                    world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder",
                    world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
-            /*
+            
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
-                   world: Matrix.Translation(-2.0f, 1.5f, 3.0f));
-            */
+                   world: Matrix.Translation(-3.0f, 1.5f, 3.0f));
+            
 
         }
 

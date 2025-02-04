@@ -336,6 +336,56 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+        public static MeshData CreateTorus(float innerRadius, float outerRadius, int sliceCount, int stackCount)
+        {
+            var meshData = new MeshData();
+
+            float phiStep = MathUtil.Pi * 2 / stackCount;
+            float thetaStep = MathUtil.Pi * 2 / sliceCount;
+
+            for (int i = 0; i <= stackCount; i++)
+            {
+                float phi = i * phiStep;
+
+                for (int j = 0; j <= sliceCount; j++)
+                {
+                    float theta = j * thetaStep;
+
+                    // Torus coordinates.
+                    float x = (outerRadius + innerRadius * MathHelper.Cosf(theta)) * MathHelper.Cosf(phi);
+                    float y = innerRadius * MathHelper.Sinf(theta);
+                    float z = (outerRadius + innerRadius * MathHelper.Cosf(theta)) * MathHelper.Sinf(phi);
+
+                    var pos = new Vector3(x, y, z);
+                    var norm = new Vector3(MathHelper.Cosf(theta) * MathHelper.Cosf(phi), MathHelper.Sinf(theta), MathHelper.Cosf(theta) * MathHelper.Sinf(phi));
+                    norm.Normalize();
+                    var tan = new Vector3(-MathHelper.Sinf(phi), 0, MathHelper.Cosf(phi));
+                    tan.Normalize();
+                    var texCoord = new Vector2((float)j / sliceCount, (float)i / stackCount);
+
+                    meshData.Vertices.Add(new Vertex(pos, norm, tan, texCoord));
+                }
+            }
+
+            // Indices.
+            for (int i = 0; i < stackCount; i++)
+            {
+                for (int j = 0; j < sliceCount; j++)
+                {
+                    meshData.Indices32.Add(i * (sliceCount + 1) + j);
+                    meshData.Indices32.Add((i + 1) * (sliceCount + 1) + j);
+                    meshData.Indices32.Add((i + 1) * (sliceCount + 1) + j + 1);
+
+                    meshData.Indices32.Add(i * (sliceCount + 1) + j);
+                    meshData.Indices32.Add((i + 1) * (sliceCount + 1) + j + 1);
+                    meshData.Indices32.Add(i * (sliceCount + 1) + j + 1);
+                }
+            }
+
+            return meshData;
+        }
+
+
 
         /*
         
