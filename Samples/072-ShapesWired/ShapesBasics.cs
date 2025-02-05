@@ -417,13 +417,7 @@ namespace DX12GameProgramming
             var indices = new List<short>();
 
 
-            /*
-            SubmeshGeometry grid        = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), Color.Gainsboro, vertices, indices);
-
-            SubmeshGeometry box         = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
-            SubmeshGeometry sphere      = AppendMeshData(GeometryGenerator.CreateSphere(0.5f, 20, 20), Color.Crimson, vertices, indices);
-            SubmeshGeometry cylinder    = AppendMeshData(GeometryGenerator.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
-            */
+         
 
             SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), Color.Gainsboro, vertices, indices);
 
@@ -435,7 +429,13 @@ namespace DX12GameProgramming
 
             SubmeshGeometry ellipse = AppendMeshData(GeometryGenerator.CreateEllipse(1.5f, 2.5f, 20, 20), Color.Black, vertices, indices);
 
+            SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.Black, vertices, indices);
+
+
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+
+            SubmeshGeometry cone = AppendMeshData(GeometryGenerator.CreateCone(1.8f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+
 
             SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.SteelBlue, vertices, indices);
 
@@ -450,7 +450,10 @@ namespace DX12GameProgramming
             geo.DrawArgs["quad"] = quad;
             geo.DrawArgs["sphere"] = sphere;
             geo.DrawArgs["ellipse"] = ellipse;
+            geo.DrawArgs["disc"] = disc;
+
             geo.DrawArgs["cylinder"] = cylinder;
+            geo.DrawArgs["cone"] = cone;
             geo.DrawArgs["torus"] = torus;
 
 
@@ -541,11 +544,11 @@ namespace DX12GameProgramming
                 world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.8f, -5.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
-               world: Matrix.Scaling(1.0f, 1.0f, 1.0f) * Matrix.Translation(4.0f, 2.5f, 1.0f));
+               world: Matrix.Scaling(1.0f, 1.0f, 1.0f) * Matrix.Translation(4.0f, 2.5f, 4.0f));
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
-                    world: Matrix.Translation(2.0f, 1.5f, 6.0f));
+                    world: Matrix.Translation(2.0f, 2.5f, 8.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
                     world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
@@ -553,10 +556,16 @@ namespace DX12GameProgramming
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder",
                    world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
-            
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cone",
+                  world: Matrix.Translation(5.0f, 1.5f, -5.0f));
+
+
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
                    world: Matrix.Translation(-3.0f, 1.5f, 3.0f));
-            
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
+                  world: Matrix.Translation(-3.0f, 2.5f, 2.0f));
+
 
         }
 

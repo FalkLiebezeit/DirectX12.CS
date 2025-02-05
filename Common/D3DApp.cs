@@ -400,13 +400,7 @@ namespace DX12GameProgramming
             }
         }
 
-
-        protected bool IsKeyDown(Keys keyCode)
-        {
-            return true;
-             
-            //return Keyboard.IsKeyDown(KeyInterop.KeyFromVirtualKey((int)keyCode));
-        }
+        protected bool IsKeyDown(Keys keyCode) => Keyboard.IsKeyDown(KeyInterop.KeyFromVirtualKey((int)keyCode));
 
         protected void InitDirect3D()
         {

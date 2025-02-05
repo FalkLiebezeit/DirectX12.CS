@@ -45,6 +45,62 @@ namespace DX12GameProgramming
             public List<short> GetIndices16() => Indices32.Select(i => (short)i).ToList();
         }
 
+
+
+        public static MeshData CreateGrid(float width, float depth, int m, int n)
+        {
+            var meshData = new MeshData();
+
+            //
+            // Create the vertices.
+            //
+
+            float halfWidth = 0.5f * width;
+            float halfDepth = 0.5f * depth;
+
+            float dx = width / (n - 1);
+            float dz = depth / (m - 1);
+
+            float du = 1f / (n - 1);
+            float dv = 1f / (m - 1);
+
+            for (int i = 0; i < m; i++)
+            {
+                float z = halfDepth - i * dz;
+                for (int j = 0; j < n; j++)
+                {
+                    float x = -halfWidth + j * dx;
+
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, 0, z),
+                        new Vector3(0, 1, 0),
+                        new Vector3(1, 0, 0),
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+                }
+            }
+
+            //
+            // Create the indices.
+            //
+
+            // Iterate over each quad and compute indices.
+            for (int i = 0; i < m - 1; i++)
+            {
+                for (int j = 0; j < n - 1; j++)
+                {
+                    meshData.Indices32.Add(i * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j);
+
+                    meshData.Indices32.Add((i + 1) * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j + 1);
+                }
+            }
+
+            return meshData;
+        }
+
         public static MeshData CreateBox(float width, float height, float depth, int numSubdivisions)
         {
             var meshData = new MeshData();
@@ -232,6 +288,60 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+       
+        public static MeshData CreateCylinder(float bottomRadius, float topRadius,
+            float height, int sliceCount, int stackCount)
+        {
+            var meshData = new MeshData();
+
+            BuildCylinderSide(bottomRadius, topRadius, height, sliceCount, stackCount, meshData);
+            BuildCylinderTopCap(topRadius, height, sliceCount, meshData);
+            BuildCylinderBottomCap(bottomRadius, height, sliceCount, meshData);
+
+            return meshData;
+        }
+
+       
+        public static MeshData CreateQuad(float x, float y, float w, float h, float depth)
+        {
+            var meshData = new MeshData();
+
+            // Position coordinates specified in NDC space.
+            meshData.Vertices.Add(new Vertex(
+                x, y - h, depth,
+                0.0f, 0.0f, -1.0f,
+                1.0f, 0.0f, 0.0f,
+                0.0f, 1.0f));
+
+            meshData.Vertices.Add(new Vertex(
+                x, y, depth,
+                0.0f, 0.0f, -1.0f,
+                1.0f, 0.0f, 0.0f,
+                0.0f, 0.0f));
+
+            meshData.Vertices.Add(new Vertex(
+                x + w, y, depth,
+                0.0f, 0.0f, -1.0f,
+                1.0f, 0.0f, 0.0f,
+                1.0f, 0.0f));
+
+            meshData.Vertices.Add(new Vertex(
+                x + w, y - h, depth,
+                0.0f, 0.0f, -1.0f,
+                1.0f, 0.0f, 0.0f,
+                1.0f, 1.0f));
+
+            meshData.Indices32.Add(0);
+            meshData.Indices32.Add(1);
+            meshData.Indices32.Add(2);
+
+            meshData.Indices32.Add(0);
+            meshData.Indices32.Add(2);
+            meshData.Indices32.Add(3);
+
+            return meshData;
+        }
+
         public static MeshData CreateEllipse(float radiusX, float radiusY, int sliceCount, int stackCount)
         {
             var meshData = new MeshData();
@@ -385,10 +495,100 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+        public static MeshData CreateCone(float bottomRadius, float height, int sliceCount, int stackCount)
+        {
+            var meshData = new MeshData();
+            float stackHeight = height / stackCount;
+            float radiusStep = (bottomRadius) / stackCount;
+            int ringCount = stackCount + 1;
+            for (int i = 0; i < ringCount; i++)
+            {
+                float y = -0.5f * height + i * stackHeight;
+                float r = bottomRadius - i * radiusStep;
+                float dTheta = 2.0f * MathUtil.Pi / sliceCount;
+                for (int j = 0; j <= sliceCount; j++)
+                {
+                    float c = MathHelper.Cosf(j * dTheta);
+                    float s = MathHelper.Sinf(j * dTheta);
+                    var pos = new Vector3(r * c, y, r * s);
+                    var tan = new Vector3(-s, 0.0f, c);
+                    var bitangent = new Vector3(-r * c, -height, -r * s);
+                    var norm = Vector3.Cross(tan, bitangent);
+                    norm.Normalize();
+                    var texCoord = new Vector2((float)j / sliceCount, 1.0f - (float)i / stackCount);
+                    meshData.Vertices.Add(new Vertex(pos, norm, tan, texCoord));
+                }
+            }
+            int ringVertexCount = sliceCount + 1;
+            for (int i = 0; i < stackCount; i++)
+            {
+                for (int j = 0; j < sliceCount; j++)
+                {
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+                    meshData.Indices32.Add(i * ringVertexCount + j + 1);
+                }
+            }
+            return meshData;
+        }
+
+        public static MeshData CreateDisc(float innerRadius, float outerRadius, float height, int sliceCount, int stackCount)
+        {
+            var meshData = new MeshData();
+
+            // Berechne den Winkel zwischen den Scheiben
+            float dTheta = 2.0f * MathUtil.Pi / sliceCount;
+            float stackHeight = height / stackCount;
+
+            for (int i = 0; i <= stackCount; i++)
+            {
+                float y = -0.5f * height + i * stackHeight;
+
+                for (int j = 0; j <= sliceCount; j++)
+                {
+                    float c = MathHelper.Cosf(j * dTheta);
+                    float s = MathHelper.Sinf(j * dTheta);
+                    float radius = innerRadius + (outerRadius - innerRadius) * ((float)i / stackCount);
+
+                    var pos = new Vector3(radius * c, y, radius * s);
+                    var norm = new Vector3(0, 1, 0); // Normalenvektor nach oben
+                    var tan = new Vector3(-s, 0.0f, c);
+                    var texCoord = new Vector2((float)j / sliceCount, (float)i / stackCount);
+
+                    meshData.Vertices.Add(new Vertex(pos, norm, tan, texCoord));
+                }
+            }
+
+            int ringVertexCount = sliceCount + 1;
+            for (int i = 0; i < stackCount; i++)
+            {
+                for (int j = 0; j < sliceCount; j++)
+                {
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+                    meshData.Indices32.Add(i * ringVertexCount + j + 1);
+                }
+            }
+
+            return meshData;
+        }
 
 
-        /*
-        
+
+
+        /// <summary>
+        ///  does not work
+        /// </summary>
+        /// <param name="radius"></param>
+        /// <param name="numSubdivisions"></param>
+        /// <returns></returns>
         public static MeshData CreateGeosphere(float radius, int numSubdivisions)
         {
             var meshData = new MeshData();
@@ -451,114 +651,6 @@ namespace DX12GameProgramming
 
                 meshData.Vertices.Add(new Vertex(position, normal, tangentU, texCoord));
             }
-
-            return meshData;
-        }
-        */
-
-
-        public static MeshData CreateCylinder(float bottomRadius, float topRadius,
-            float height, int sliceCount, int stackCount)
-        {
-            var meshData = new MeshData();
-
-            BuildCylinderSide(bottomRadius, topRadius, height, sliceCount, stackCount, meshData);
-            BuildCylinderTopCap(topRadius, height, sliceCount, meshData);
-            BuildCylinderBottomCap(bottomRadius, height, sliceCount, meshData);
-
-            return meshData;
-        }
-
-        public static MeshData CreateGrid(float width, float depth, int m, int n)
-        {
-            var meshData = new MeshData();
-
-            //
-            // Create the vertices.
-            //
-
-            float halfWidth = 0.5f * width;
-            float halfDepth = 0.5f * depth;
-
-            float dx = width / (n - 1);
-            float dz = depth / (m - 1);
-
-            float du = 1f / (n - 1);
-            float dv = 1f / (m - 1);
-
-            for (int i = 0; i < m; i++)
-            {
-                float z = halfDepth - i * dz;
-                for (int j = 0; j < n; j++)
-                {
-                    float x = -halfWidth + j * dx;
-
-                    meshData.Vertices.Add(new Vertex(
-                        new Vector3(x, 0, z),
-                        new Vector3(0, 1, 0),
-                        new Vector3(1, 0, 0),
-                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
-                }
-            }
-
-            //
-            // Create the indices.
-            //
-
-            // Iterate over each quad and compute indices.
-            for (int i = 0; i < m - 1; i++)
-            {
-                for (int j = 0; j < n - 1; j++)
-                {
-                    meshData.Indices32.Add(i * n + j);
-                    meshData.Indices32.Add(i * n + j + 1);
-                    meshData.Indices32.Add((i + 1) * n + j);
-
-                    meshData.Indices32.Add((i + 1) * n + j);
-                    meshData.Indices32.Add(i * n + j + 1);
-                    meshData.Indices32.Add((i + 1) * n + j + 1);
-                }
-            }
-
-            return meshData;
-        }
-
-        public static MeshData CreateQuad(float x, float y, float w, float h, float depth)
-        {
-            var meshData = new MeshData();
-
-            // Position coordinates specified in NDC space.
-            meshData.Vertices.Add(new Vertex(
-                x, y - h, depth,
-                0.0f, 0.0f, -1.0f,
-                1.0f, 0.0f, 0.0f,
-                0.0f, 1.0f));
-
-            meshData.Vertices.Add(new Vertex(
-                x, y, depth,
-                0.0f, 0.0f, -1.0f,
-                1.0f, 0.0f, 0.0f,
-                0.0f, 0.0f));
-
-            meshData.Vertices.Add(new Vertex(
-                x + w, y, depth,
-                0.0f, 0.0f, -1.0f,
-                1.0f, 0.0f, 0.0f,
-                1.0f, 0.0f));
-
-            meshData.Vertices.Add(new Vertex(
-                x + w, y - h, depth,
-                0.0f, 0.0f, -1.0f,
-                1.0f, 0.0f, 0.0f,
-                1.0f, 1.0f));
-
-            meshData.Indices32.Add(0);
-            meshData.Indices32.Add(1);
-            meshData.Indices32.Add(2);
-
-            meshData.Indices32.Add(0);
-            meshData.Indices32.Add(2);
-            meshData.Indices32.Add(3);
 
             return meshData;
         }
@@ -773,7 +865,6 @@ namespace DX12GameProgramming
         public static MeshData BuildFullscreenQuad()
         {
             var meshData = new MeshData();
-
             meshData.Vertices.Add(new Vertex(
                 -1.0f, -1.0f, 0.0f,
                 0.0f, 0.0f, -1.0f,
@@ -794,14 +885,12 @@ namespace DX12GameProgramming
                 0.0f, 0.0f, -1.0f,
                 1.0f, 0.0f, 0.0f,
                 1.0f, 1.0f));
-
             meshData.Indices32.Add(0);
             meshData.Indices32.Add(1);
             meshData.Indices32.Add(2);
             meshData.Indices32.Add(0);
             meshData.Indices32.Add(2);
             meshData.Indices32.Add(3);
-
             return meshData;
         }
     }
