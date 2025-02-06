@@ -25,23 +25,23 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stencil", "Samples\11-Stenc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TexWaves2", "Samples\13-WavesCS\TexWaves2.csproj", "{E606D926-491E-43B9-A60D-FF0CFFE6E59E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "13-VecAdd", "Samples\13-VecAdd\13-VecAdd.csproj", "{52F54CC6-5A9E-4E52-8007-BF1535AD9D31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VecAdd", "Samples\13-VecAdd\VecAdd.csproj", "{52F54CC6-5A9E-4E52-8007-BF1535AD9D31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "13-SobelFilter", "Samples\13-SobelFilter\13-SobelFilter.csproj", "{CE1B2D38-6F3F-430F-9313-5BD4D3C10C62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SobelFilter", "Samples\13-SobelFilter\SobelFilter.csproj", "{CE1B2D38-6F3F-430F-9313-5BD4D3C10C62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "13-Blur", "Samples\13-Blur\13-Blur.csproj", "{1E305AD7-C386-4331-9C8B-CBF765696A95}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blur", "Samples\13-Blur\Blur.csproj", "{1E305AD7-C386-4331-9C8B-CBF765696A95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "14-BasicTessellation", "Samples\14-BasicTessellation\14-BasicTessellation.csproj", "{A2DAB809-BC2A-4969-9BCA-89797D298E20}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicTessellation", "Samples\14-BasicTessellation\BasicTessellation.csproj", "{A2DAB809-BC2A-4969-9BCA-89797D298E20}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BezierPatch", "Samples\14-BezierPatch\BezierPatch.csproj", "{8CC0EF52-87B8-47F5-8331-307EECFDC464}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "20-Shadows", "Samples\20-Shadows\20-Shadows.csproj", "{04BA6790-B0B7-4BDE-81C5-D08D49CA6F61}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shadows", "Samples\20-Shadows\Shadows.csproj", "{04BA6790-B0B7-4BDE-81C5-D08D49CA6F61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "21-Ssao", "Samples\21-Ssao\21-Ssao.csproj", "{8FB409F9-7CBE-4753-8D3A-5EB2B94E1179}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ssao", "Samples\21-Ssao\Ssao.csproj", "{8FB409F9-7CBE-4753-8D3A-5EB2B94E1179}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quaternions", "Samples\22-Quaternions\Quaternions.csproj", "{4A18F0F3-7516-4561-B623-E1267BBED010}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "23-SkinnedMesh", "Samples\23-SkinnedMesh\23-SkinnedMesh.csproj", "{546A04C1-FDCE-41C7-B7C9-3DCA73BA1BC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkinnedMesh", "Samples\23-SkinnedMesh\SkinnedMesh.csproj", "{546A04C1-FDCE-41C7-B7C9-3DCA73BA1BC5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstancingAndCulling", "Samples\16-InstancingAndCulling\InstancingAndCulling.csproj", "{9881AAB1-0FE1-4718-AF10-51DB4D8CA289}"
 EndProject
@@ -150,9 +150,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shapes", "Samples\Shapes\Shapes.csproj", "{7883EE16-CF05-4A7F-9DEA-1AFBB5666F91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeBillboards", "Samples\TreeBillboards\TreeBillboards.csproj", "{8B810211-FF27-494E-B24D-E2F910E4930F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillboardsTrees", "Samples\TreeBillboards\BillboardsTrees.csproj", "{8B810211-FF27-494E-B24D-E2F910E4930F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeBillboardsBasics", "Samples\TreeBillboardsBasics\TreeBillboardsBasics.csproj", "{DEC5DAB5-90B3-490D-8378-A3482A563B88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillboardsTreesFogBasics", "Samples\TreeBillboardsBasics\BillboardsTreesFogBasics.csproj", "{DEC5DAB5-90B3-490D-8378-A3482A563B88}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RayDynSphere", "Samples\Raytracing.Sphere\RayDynSphere.csproj", "{9AEDBF12-D8C5-477E-905C-C19393426229}"
 EndProject

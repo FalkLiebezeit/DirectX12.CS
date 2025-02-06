@@ -423,21 +423,21 @@ namespace DX12GameProgramming
 
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
 
-            SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkGreen, vertices, indices);
+            SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
 
             SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(1.5f, 20, 20), Color.Crimson, vertices, indices);
 
             SubmeshGeometry ellipse = AppendMeshData(GeometryGenerator.CreateEllipse(1.5f, 2.5f, 20, 20), Color.Black, vertices, indices);
 
-            SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.Black, vertices, indices);
+            SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateBillBoardDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.DarkCyan, vertices, indices);
 
 
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
 
-            SubmeshGeometry cone = AppendMeshData(GeometryGenerator.CreateCone(1.8f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+            SubmeshGeometry cone = AppendMeshData(GeometryGenerator.CreateCone(1.8f, 3.0f, 20, 20), Color.DarkOliveGreen, vertices, indices);
 
 
-            SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.SteelBlue, vertices, indices);
+            SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.DarkKhaki, vertices, indices);
 
 
 
@@ -561,10 +561,10 @@ namespace DX12GameProgramming
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
-                   world: Matrix.Translation(-3.0f, 1.5f, 3.0f));
+                   world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
-                  world: Matrix.Translation(-3.0f, 2.5f, 2.0f));
+                  world: Matrix.Translation(0.0f, 2.5f, 12.0f));
 
 
         }

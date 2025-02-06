@@ -66,7 +66,7 @@ namespace DX12GameProgramming
 
         public TreeBillboardsApp()
         {
-            MainWindowCaption = "tree billboards basics";
+            MainWindowCaption = "tree billboards in fog basics";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];

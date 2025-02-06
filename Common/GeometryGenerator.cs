@@ -535,7 +535,7 @@ namespace DX12GameProgramming
             return meshData;
         }
 
-        public static MeshData CreateDisc(float innerRadius, float outerRadius, float height, int sliceCount, int stackCount)
+        public static MeshData CreateBillBoardDisc(float innerRadius, float outerRadius, float height, int sliceCount, int stackCount)
         {
             var meshData = new MeshData();
 
