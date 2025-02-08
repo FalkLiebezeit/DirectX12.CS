@@ -100,7 +100,7 @@ namespace DX12GameProgramming
 
         protected override void Update(GameTimer gt)
         {
-            UpdateCamera();
+            UpdateCamera(gt);
 
             // Cycle through the circular frame resource array.
             _currFrameResourceIndex = (_currFrameResourceIndex + 1) % NumFrameResources;
@@ -250,11 +250,19 @@ namespace DX12GameProgramming
             base.Dispose(disposing);
         }
 
-        private void UpdateCamera()
+        private void UpdateCamera(GameTimer gt)
         {
+            /*
             // Convert Spherical to Cartesian coordinates.
             _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta);
             _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta);
+            */
+
+            // Convert Spherical to Cartesian coordinates.
+            _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta * gt.TotalTime / 100.0f);
+            _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta * gt.TotalTime / 100.0f);
+
+
             _eyePos.Y = _radius * MathHelper.Cosf(_phi);
 
             // Build the view matrix.
