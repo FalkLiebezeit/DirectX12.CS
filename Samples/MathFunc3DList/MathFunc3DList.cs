@@ -39,7 +39,8 @@ namespace DX12GameProgramming
         private int _passCbvOffset;
 
         private bool _isWireframe = true;
-        private int _isVisible = -1;
+
+        private int _isVisible = 1;
 
         private Vector3 _eyePos;
         private Matrix _proj = Matrix.Identity;
@@ -53,7 +54,7 @@ namespace DX12GameProgramming
 
         public MathFunc3DList()
         {
-            MainWindowCaption = "collection of 3D math funcs";
+            MainWindowCaption = "collection of 3D math funcs - PRESS 1,2 or 3 for more ...";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -224,7 +225,7 @@ namespace DX12GameProgramming
             _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
 
             if (keyCode == Keys.D3)
-                _isVisible = _isVisible < 4 ? _isVisible + 1 : _isVisible;
+                _isVisible = _isVisible < 1 ? _isVisible + 1 : _isVisible;
 
         }
 
@@ -423,13 +424,15 @@ namespace DX12GameProgramming
             var vertices = new List<Vertex>();
             var indices = new List<short>();
 
+            SubmeshGeometry gaussgrid = AppendMeshData(GeometryGenerator.CreateGaussGrid(7.0f, 7.0f, 50, 50), Color.Blue, vertices, indices);
+            SubmeshGeometry rotsymgrid = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 50, 50), Color.Blue, vertices, indices);
 
-         
 
-            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), Color.Gainsboro, vertices, indices);
 
+            /*
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
 
+           
             SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
 
             SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(1.5f, 20, 20), Color.Crimson, vertices, indices);
@@ -445,14 +448,18 @@ namespace DX12GameProgramming
 
 
             SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.DarkKhaki, vertices, indices);
-
+            */
 
 
 
             var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "shapeGeo");
 
 
-            geo.DrawArgs["grid"] = grid;
+            geo.DrawArgs["gaussgrid"] = gaussgrid;
+            geo.DrawArgs["rotsymgrid"] = rotsymgrid;
+
+
+            /*
             geo.DrawArgs["box"] = box;
             geo.DrawArgs["quad"] = quad;
             geo.DrawArgs["sphere"] = sphere;
@@ -462,7 +469,7 @@ namespace DX12GameProgramming
             geo.DrawArgs["cylinder"] = cylinder;
             geo.DrawArgs["cone"] = cone;
             geo.DrawArgs["torus"] = torus;
-
+            */
 
             _geometries[geo.Name] = geo;
         }
@@ -545,9 +552,15 @@ namespace DX12GameProgramming
         {
             int j = 0;
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid");
 
 
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gaussgrid");
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsymgrid");
+
+
+
+            /*
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
                 world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.8f, -5.0f));
 
@@ -573,7 +586,7 @@ namespace DX12GameProgramming
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
                   world: Matrix.Translation(0.0f, 2.5f, 12.0f));
-
+            */
 
         }
 
@@ -601,7 +614,7 @@ namespace DX12GameProgramming
             // For each render item...
             foreach (RenderItem ri in ritems)
             {
-                if(ri.ObjCBIndex != _isVisible)
+                if(ri.ObjCBIndex == _isVisible)
                 { 
                     cmdList.SetVertexBuffer(0, ri.Geo.VertexBufferView);
                     cmdList.SetIndexBuffer(ri.Geo.IndexBufferView);

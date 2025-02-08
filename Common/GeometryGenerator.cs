@@ -579,7 +579,139 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+        public static MeshData CreateGaussGrid(float width, float depth, int m, int n)
+        {
+            var meshData = new MeshData();
 
+            //
+            // Create the vertices.
+            //
+
+            float halfWidth = 0.5f * width;
+            float halfDepth = 0.5f * depth;
+
+            float dx = width / (n - 1);
+            float dz = depth / (m - 1);
+
+            float du = 1f / (n - 1);
+            float dv = 1f / (m - 1);
+
+            for (int i = 0; i < m; i++)
+            {
+                float z = halfDepth - i * dz;
+
+                for (int j = 0; j < n; j++)
+                {
+                    float x = -halfWidth + j * dx;
+
+                     /*
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, 0, z),
+                        new Vector3(0, 1, 0),
+                        new Vector3(1, 0, 0),
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+                    */
+                   
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, GetGaussFuncValue(x, z), z),
+                        //new Vector3(x, x+z, z),
+
+                        new Vector3(0,1, 0),
+                        new Vector3(1, 0, 0),
+
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+                    
+
+                }
+            }
+
+            //
+            // Create the indices.
+            //
+
+            // Iterate over each quad and compute indices.
+            for (int i = 0; i < m - 1; i++)
+            {
+                for (int j = 0; j < n - 1; j++)
+                {
+                    meshData.Indices32.Add(i * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j);
+
+                    meshData.Indices32.Add((i + 1) * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j + 1);
+                }
+            }
+
+            return meshData;
+        }
+
+        public static MeshData CreateRotSymGrid(float width, float depth, int m, int n)
+        {
+            var meshData = new MeshData();
+
+            //
+            // Create the vertices.
+            //
+
+            float halfWidth = 0.5f * width;
+            float halfDepth = 0.5f * depth;
+
+            float dx = width / (n - 1);
+            float dz = depth / (m - 1);
+
+            float du = 1f / (n - 1);
+            float dv = 1f / (m - 1);
+
+            for (int i = 0; i < m; i++)
+            {
+                float z = halfDepth - i * dz;
+
+                for (int j = 0; j < n; j++)
+                {
+                    float x = -halfWidth + j * dx;
+
+                    /*
+                   meshData.Vertices.Add(new Vertex(
+                       new Vector3(x, 0, z),
+                       new Vector3(0, 1, 0),
+                       new Vector3(1, 0, 0),
+                       new Vector2(j * du, i * dv))); // Stretch texture over grid.
+                   */
+
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, GetRotSymFuncValue(x, z), z),
+                        new Vector3(0, 1, 0),
+                        new Vector3(1, 0, 0),
+
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+
+
+                }
+            }
+
+            //
+            // Create the indices.
+            //
+
+            // Iterate over each quad and compute indices.
+            for (int i = 0; i < m - 1; i++)
+            {
+                for (int j = 0; j < n - 1; j++)
+                {
+                    meshData.Indices32.Add(i * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j);
+
+                    meshData.Indices32.Add((i + 1) * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j + 1);
+                }
+            }
+
+            return meshData;
+        }
 
 
         /// <summary>
@@ -677,6 +809,7 @@ namespace DX12GameProgramming
             // v0    m2     v2
 
             int numTriangles = indicesCopy.Length / 3;
+
             for (int i = 0; i < numTriangles; i++)
             {
                 Vertex v0 = verticesCopy[indicesCopy[i * 3 + 0]];
@@ -864,6 +997,7 @@ namespace DX12GameProgramming
         public static MeshData BuildFullscreenQuad()
         {
             var meshData = new MeshData();
+
             meshData.Vertices.Add(new Vertex(
                 -1.0f, -1.0f, 0.0f,
                 0.0f, 0.0f, -1.0f,
@@ -892,5 +1026,19 @@ namespace DX12GameProgramming
             meshData.Indices32.Add(3);
             return meshData;
         }
+
+        private static float GetGaussFuncValue(float x, float z) => 4 * (float)Math.Exp(- (Math.Pow(x, 2) + Math.Pow(z, 2)));
+
+        private static float GetRotSymFuncValue(float x, float z)
+        {
+
+            double r = Math.Sqrt(Math.Pow(x, 2) + Math.Pow(z, 2));
+
+            double result = (3.0f * (Math.Sin(3 * r)) / (3 * r));
+
+            return (float)result;
+
+        }
+
     }
 }
