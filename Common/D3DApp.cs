@@ -149,6 +149,7 @@ namespace DX12GameProgramming
         {
             // Implements the basic dispose pattern.
             // Ref: https://msdn.microsoft.com/en-us/library/b1yfkh5e(v=vs.110).aspx
+
             if (disposing)
             {
                 FlushCommandQueue();
@@ -217,6 +218,8 @@ namespace DX12GameProgramming
                 Layout = TextureLayout.Unknown,
                 Flags = ResourceFlags.AllowDepthStencil
             };
+
+
             var optClear = new ClearValue
             {
                 Format = DepthStencilFormat,
@@ -226,6 +229,7 @@ namespace DX12GameProgramming
                     Stencil = 0
                 }
             };
+
             DepthStencilBuffer = Device.CreateCommittedResource(
                 new HeapProperties(HeapType.Default),
                 HeapFlags.None,
@@ -553,6 +557,7 @@ namespace DX12GameProgramming
                 DescriptorCount = RtvDescriptorCount,
                 Type = DescriptorHeapType.RenderTargetView
             };
+
             RtvHeap = Device.CreateDescriptorHeap(rtvHeapDesc);
 
             var dsvHeapDesc = new DescriptorHeapDescription
@@ -560,6 +565,7 @@ namespace DX12GameProgramming
                 DescriptorCount = DsvDescriptorCount,
                 Type = DescriptorHeapType.DepthStencilView
             };
+
             DsvHeap = Device.CreateDescriptorHeap(dsvHeapDesc);
         }
 

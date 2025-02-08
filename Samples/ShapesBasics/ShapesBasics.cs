@@ -53,7 +53,7 @@ namespace DX12GameProgramming
 
         public ShapesBasics()
         {
-            MainWindowCaption = "basic shapes";
+            MainWindowCaption = "simple shapes";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -73,8 +73,8 @@ namespace DX12GameProgramming
 
             BuildShapeGeometry();
 
-
             BuildRenderItems();
+
 
             BuildFrameResources();
             BuildDescriptorHeaps();
@@ -148,9 +148,14 @@ namespace DX12GameProgramming
             int passCbvIndex = _passCbvOffset + _currFrameResourceIndex;
             GpuDescriptorHandle passCbvHandle = _cbvHeap.GPUDescriptorHandleForHeapStart;
             passCbvHandle += passCbvIndex * CbvSrvUavDescriptorSize;
+
             CommandList.SetGraphicsRootDescriptorTable(1, passCbvHandle);
 
+
+
             DrawRenderItems(CommandList, _ritemLayers[RenderLayer.Opaque]);
+
+           
 
             // Indicate a state transition on the resource usage.
             CommandList.ResourceBarrierTransition(CurrentBackBuffer, ResourceStates.RenderTarget, ResourceStates.Present);
@@ -228,7 +233,6 @@ namespace DX12GameProgramming
             base.OnKeyUp(keyCode);
 
                 if (keyCode == Keys.D1)  // if pressed key 1 on the keyboard
-                //if (keyCode == Keys.A)
                     _isWireframe = !_isWireframe;
         }
 
@@ -286,7 +290,9 @@ namespace DX12GameProgramming
             _mainPassCB.InvProj = Matrix.Transpose(invProj);
             _mainPassCB.ViewProj = Matrix.Transpose(viewProj);
             _mainPassCB.InvViewProj = Matrix.Transpose(invViewProj);
+
             _mainPassCB.EyePosW = _eyePos;
+
             _mainPassCB.RenderTargetSize = new Vector2(ClientWidth, ClientHeight);
             _mainPassCB.InvRenderTargetSize = 1.0f / _mainPassCB.RenderTargetSize;
             _mainPassCB.NearZ = 1.0f;
@@ -314,6 +320,7 @@ namespace DX12GameProgramming
                 Type = DescriptorHeapType.ConstantBufferViewShaderResourceViewUnorderedAccessView,
                 Flags = DescriptorHeapFlags.ShaderVisible
             };
+
             _cbvHeap = Device.CreateDescriptorHeap(cbvHeapDesc);
             _descriptorHeaps = new[] { _cbvHeap };
         }
@@ -484,6 +491,7 @@ namespace DX12GameProgramming
                 Pos = vertex.Position,
                 Color = color.ToVector4()
             }));
+
             indices.AddRange(meshData.GetIndices16());
 
             return submesh;
@@ -544,11 +552,11 @@ namespace DX12GameProgramming
                 world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.8f, -5.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
-               world: Matrix.Scaling(1.0f, 1.0f, 1.0f) * Matrix.Translation(4.0f, 2.5f, 4.0f));
+                    world: Matrix.Translation(6.0f, 2.5f, 4.0f));
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
-                    world: Matrix.Translation(2.0f, 2.5f, 8.0f));
+                    world: Matrix.Translation(5.0f, 2.5f, 8.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
                     world: Matrix.Translation(-8.0f, 2.5f, -1.0f));

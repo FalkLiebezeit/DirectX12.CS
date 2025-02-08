@@ -48,8 +48,8 @@ namespace DX12GameProgramming
         private Matrix _proj = Matrix.Identity;
         private Matrix _view = Matrix.Identity;
 
-        private float _theta = 1.5f * MathUtil.Pi;
-        private float _phi = MathUtil.PiOverTwo - 0.1f;
+        private float _theta = 1.5f * MathUtil.Pi + 0.4f;
+        private float _phi = MathUtil.PiOverTwo - 0.4f;
         private float _radius = 50.0f;
 
         private float _tBase;
@@ -58,7 +58,7 @@ namespace DX12GameProgramming
 
         public TexWavesApp()
         {
-            MainWindowCaption = "Tex Waves";
+            MainWindowCaption = "texture waves";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];

@@ -7,6 +7,22 @@ using SharpDX.Direct3D12;
 using SharpDX.DXGI;
 using Resource = SharpDX.Direct3D12.Resource;
 
+/*
+you have to install SharpDX first. use NuGet in Visual Studio :
+
+Install-Package SharpDX
+Install-Package SharpDX.Direct2D1
+Install-Package SharpDX.DirectWrite
+ */
+
+
+// to display TEXT on screen
+using SharpDX.Direct2D1;
+using SharpDX.DirectWrite;
+using SharpDX.Mathematics.Interop;
+
+
+
 namespace DX12GameProgramming
 {
     public class Gauss3DApp : D3DApp
@@ -49,6 +65,14 @@ namespace DX12GameProgramming
 
         private Point _lastMousePos;
 
+
+        /// <summary>
+        /// Text on Screen
+        /// </summary>
+        private WindowRenderTarget renderTarget;
+        private SolidColorBrush brush;
+        private TextFormat textFormat;
+
         public Gauss3DApp()
         {
             MainWindowCaption = "Gaussian Model 3D";
@@ -60,6 +84,22 @@ namespace DX12GameProgramming
         public override void Initialize()
         {
             base.Initialize();
+
+            InitializeResources();
+
+            /*
+            // Initialize renderTarget here
+            var renderTargetProperties = new RenderTargetProperties();
+            var hwndRenderTargetProperties = new HwndRenderTargetProperties
+            {
+                //Hwnd = d3d.MainWindow.Handle,
+
+                PixelSize = new Size2(ClientWidth, ClientHeight),
+                PresentOptions = PresentOptions.None
+            };
+
+            renderTarget = new WindowRenderTarget(new SharpDX.Direct2D1.Factory(), renderTargetProperties, hwndRenderTargetProperties);
+            */
 
             // Reset the command list to prep for initialization commands.
             CommandList.Reset(DirectCmdListAlloc, null);
@@ -76,6 +116,8 @@ namespace DX12GameProgramming
 
             // Execute the initialization commands.
             CommandList.Close();
+
+            // Add the commands to the queue for execution.
             CommandQueue.ExecuteCommandList(CommandList);
 
             // Wait until initialization is complete.
@@ -118,6 +160,10 @@ namespace DX12GameProgramming
             // We can only reset when the associated command lists have finished execution on the GPU.
             cmdListAlloc.Reset();
 
+
+          
+
+
             // A command list can be reset after it has been added to the command queue via ExecuteCommandList.
             // Reusing the command list reuses memory.
 
@@ -142,7 +188,15 @@ namespace DX12GameProgramming
             Resource passCB = CurrFrameResource.PassCB.Resource;
             CommandList.SetGraphicsRootConstantBufferView(1, passCB.GPUVirtualAddress);
 
+
+
+
             DrawRenderItems(CommandList, _ritemLayers[RenderLayer.Opaque]);
+            // DrawText("Gaussian Model 3D", 10, 10);
+
+
+
+
 
             // Indicate a state transition on the resource usage.
             CommandList.ResourceBarrierTransition(CurrentBackBuffer, ResourceStates.RenderTarget, ResourceStates.Present);
@@ -308,14 +362,16 @@ namespace DX12GameProgramming
 
             _inputLayout = new InputLayoutDescription(new[]
             {
-                new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0),
-                new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 12, 0)
+                new SharpDX.Direct3D12.InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0),
+                new SharpDX.Direct3D12.InputElement("COLOR", 0, Format.R32G32B32A32_Float, 12, 0)
             });
         }
 
         private void BuildGauss3DGraph()
-        {                                                   
-            GeometryGenerator.MeshData grid = GeometryGenerator.CreateGrid(140.0f, 140.0f, 50, 50); //CreateGrid(width,length, x num of vertex elements, z num of vertex elements)   
+        {
+            //CreateGrid(width,length, x num of vertex elements, z num of vertex elements)   
+            GeometryGenerator.MeshData grid = GeometryGenerator.CreateGrid(140.0f, 140.0f, 50, 50);
+                                               
 
             //
             // Extract the vertex elements we are interested and apply the height function to
@@ -372,7 +428,7 @@ namespace DX12GameProgramming
                 BaseVertexLocation = 0
             };
 
-            geo.DrawArgs["grid"] = submesh;
+            geo.DrawArgs["gauss"] = submesh;
 
             _geometries["landGeo"] = geo;
         }
@@ -409,7 +465,8 @@ namespace DX12GameProgramming
             //
 
             var opaqueWireframePsoDesc = opaquePsoDesc;
-            opaqueWireframePsoDesc.RasterizerState.FillMode = FillMode.Wireframe;
+
+            opaqueWireframePsoDesc.RasterizerState.FillMode = SharpDX.Direct3D12.FillMode.Wireframe;
 
             _psos["opaque_wireframe"] = Device.CreateGraphicsPipelineState(opaqueWireframePsoDesc);
         }
@@ -425,7 +482,7 @@ namespace DX12GameProgramming
 
         private void BuildRenderItems()
         {
-            AddRenderItem(RenderLayer.Opaque, 0, "landGeo", "grid");
+            AddRenderItem(RenderLayer.Opaque, 0, "landGeo", "gauss");
         }
 
         private RenderItem AddRenderItem(RenderLayer layer, int objCBIndex, string geoName, string submeshName)
@@ -457,6 +514,9 @@ namespace DX12GameProgramming
             {
                 cmdList.SetVertexBuffer(0, ri.Geo.VertexBufferView);
                 cmdList.SetIndexBuffer(ri.Geo.IndexBufferView);
+
+                
+
                 cmdList.PrimitiveTopology = ri.PrimitiveType;
 
                 long objCBAddress = objectCB.GPUVirtualAddress + ri.ObjCBIndex * objCBByteSize;
@@ -467,6 +527,87 @@ namespace DX12GameProgramming
             }
         }
 
+        public void DrawText(string text, float x, float y)
+        {
+            renderTarget.BeginDraw();
+            renderTarget.DrawText(text, textFormat, new RawRectangleF(x, y, x + 500, y + 50), brush);
+            renderTarget.EndDraw();
+        }
+
+
+        private void InitializeResources()
+        {
+
+            var factory = new SharpDX.DirectWrite.Factory();
+
+            textFormat = new TextFormat(factory, "Arial", FontWeight.Normal, FontStyle.Normal, 32);
+
+            
+            // 1. Create RTV Descriptor Heap
+            var rtvHeapDesc = new DescriptorHeapDescription
+            {
+                DescriptorCount = 1,
+                Type = DescriptorHeapType.RenderTargetView,
+                Flags = DescriptorHeapFlags.None
+            };
+            var rtvHeap = Device.CreateDescriptorHeap(rtvHeapDesc);
+
+            // 2. Create Render Target
+            var renderTargetDesc = new ResourceDescription
+            {
+                Dimension = ResourceDimension.Texture2D,
+                Alignment = 0,
+                Width = 1280,
+                Height = 720,
+                DepthOrArraySize = 1,
+                MipLevels = 1,
+                Format = Format.R8G8B8A8_UNorm,
+                SampleDescription = new SampleDescription(1, 0),
+                Layout = TextureLayout.Unknown,
+                Flags = ResourceFlags.AllowRenderTarget
+            };
+
+            var clearValue = new ClearValue
+            {
+                Format = Format.R8G8B8A8_UNorm,
+                Color = new RawVector4(0, 0, 0, 1) // Changed from Color4 to RawVector4
+            };
+
+            
+            //renderTarget = new RenderTarget();
+
+            
+              var renderTarget = Device.CreateCommittedResource(
+                  new HeapProperties(HeapType.Default),
+                  HeapFlags.None,
+                  renderTargetDesc,
+                  ResourceStates.Present,
+                  clearValue
+              );
+
+
+              // 3. Create RTV
+              var rtvHandle = rtvHeap.CPUDescriptorHandleForHeapStart;
+              Device.CreateRenderTargetView(renderTarget, null, rtvHandle);
+
+
+              /*
+              // 4. Bind Render Target in Command List
+              commandList.ResourceBarrierTransition(renderTarget, ResourceStates.Present, ResourceStates.RenderTarget);
+              commandList.SetRenderTargets(rtvHandle, null);
+              commandList.ClearRenderTargetView(rtvHandle, new Color4(0, 0, 0, 1), 0, null);
+
+              // 5. After rendering
+              commandList.ResourceBarrierTransition(renderTarget, ResourceStates.RenderTarget, ResourceStates.Present);
+            
+
+              brush = new SolidColorBrush(renderTarget, new RawColor4(1.0f, 1.0f, 1.0f, 1.0f));
+              */
+
+        }
+
         private static float GetFuncValue(float x, float z) => 80.0f * (float)Math.Exp(-(Math.Pow((x/25.0f), 2)+ Math.Pow((z / 25.0f), 2)));
     }
+
+
 }

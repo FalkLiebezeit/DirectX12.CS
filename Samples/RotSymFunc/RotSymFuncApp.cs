@@ -372,7 +372,7 @@ namespace DX12GameProgramming
                 BaseVertexLocation = 0
             };
 
-            geo.DrawArgs["grid"] = submesh;
+            geo.DrawArgs["rotsym"] = submesh;
 
             _geometries["landGeo"] = geo;
         }
@@ -425,7 +425,7 @@ namespace DX12GameProgramming
 
         private void BuildRenderItems()
         {
-            AddRenderItem(RenderLayer.Opaque, 0, "landGeo", "grid");
+            AddRenderItem(RenderLayer.Opaque, 0, "landGeo", "rotsym");
         }
 
         private RenderItem AddRenderItem(RenderLayer layer, int objCBIndex, string geoName, string submeshName)
@@ -472,17 +472,12 @@ namespace DX12GameProgramming
             double r = Math.Sqrt(Math.Pow(x , 2) + Math.Pow(z , 2)) ;
 
             double result = (50.0f * (Math.Sin(r / 7.0f)) / (r / 7.0f));
+            //double result = (50.0f * (Math.Cos(r / 7.0f)) / (r / 7.0f));
 
             return (float)result; 
 
         }
 
-        private static float GetFuncValue0(float x, float z)
-        {
-            double result = 50.0f * (Math.Pow(Math.Sin(x /10.0f) / (x / 10.0f), 1) * Math.Pow(Math.Sin(z / 10.0f) / (z / 10.0f), 1)) ;
-
-            return (float)result;
-
-        }
+       
     }
 }

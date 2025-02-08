@@ -67,6 +67,7 @@ namespace DX12GameProgramming
             for (int i = 0; i < m; i++)
             {
                 float z = halfDepth - i * dz;
+
                 for (int j = 0; j < n; j++)
                 {
                     float x = -halfWidth + j * dx;
@@ -287,7 +288,6 @@ namespace DX12GameProgramming
             }
             return meshData;
         }
-
        
         public static MeshData CreateCylinder(float bottomRadius, float topRadius,
             float height, int sliceCount, int stackCount)
@@ -300,7 +300,6 @@ namespace DX12GameProgramming
 
             return meshData;
         }
-
        
         public static MeshData CreateQuad(float x, float y, float w, float h, float depth)
         {

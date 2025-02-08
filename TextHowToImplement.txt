@@ -1,0 +1,45 @@
+
+Klar, ich kann dir dabei helfen! Hier ist ein einfaches Beispiel, wie du Texte mit DirectX 12 in C# auf den Bildschirm schreiben kannst.
+Dafür verwenden wir SharpDX, eine beliebte .NET-Bibliothek für DirectX.
+
+Zuerst musst du SharpDX installieren. Du kannst dies über NuGet in Visual Studio tun:
+
+
+Install-Package SharpDX
+Install-Package SharpDX.Direct2D1
+Install-Package SharpDX.DirectWrite
+
+
+Hier ist ein Beispielcode, der zeigt, wie du Text rendern kannst:
+
+using SharpDX;
+using SharpDX.Direct2D1;
+using SharpDX.DirectWrite;
+using SharpDX.Mathematics.Interop;
+
+public class TextRenderer
+{
+    private WindowRenderTarget renderTarget;
+    private SolidColorBrush brush;
+    private TextFormat textFormat;
+
+    public TextRenderer(WindowRenderTarget renderTarget)
+    {
+        this.renderTarget = renderTarget;
+        InitializeResources();
+    }
+
+    private void InitializeResources()
+    {
+        var factory = new SharpDX.DirectWrite.Factory();
+        textFormat = new TextFormat(factory, "Arial", FontWeight.Normal, FontStyle.Normal, 32);
+        brush = new SolidColorBrush(renderTarget, new RawColor4(1.0f, 1.0f, 1.0f, 1.0f));
+    }
+
+    public void DrawText(string text, float x, float y)
+    {
+        renderTarget.BeginDraw();
+        renderTarget.DrawText(text, textFormat, new RawRectangleF(x, y, x + 500, y + 50), brush);
+        renderTarget.EndDraw();
+    }
+}
