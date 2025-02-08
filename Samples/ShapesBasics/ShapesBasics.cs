@@ -99,7 +99,7 @@ namespace DX12GameProgramming
 
         protected override void Update(GameTimer gt)
         {
-            UpdateCamera();
+            UpdateCamera(gt);
 
             // Cycle through the circular frame resource array.
             _currFrameResourceIndex = (_currFrameResourceIndex + 1) % NumFrameResources;
@@ -221,10 +221,10 @@ namespace DX12GameProgramming
                 _isWireframe = false;
 
             if (keyCode == Keys.D2)
-            _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
+            _isVisible = _isVisible > -1 ? _isVisible - 1 : _isVisible;
 
             if (keyCode == Keys.D3)
-                _isVisible = _isVisible < 4 ? _isVisible + 1 : _isVisible;
+                _isVisible = _isVisible < 10 ? _isVisible + 1 : _isVisible;
 
         }
 
@@ -249,11 +249,18 @@ namespace DX12GameProgramming
             base.Dispose(disposing);
         }
 
-        private void UpdateCamera()
+        private void UpdateCamera(GameTimer gt)
         {
+            /*
             // Convert Spherical to Cartesian coordinates.
             _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta);
             _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta);
+            */
+
+            // Convert Spherical to Cartesian coordinates.
+            _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta * gt.TotalTime / 100.0f);
+            _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta * gt.TotalTime / 100.0f);
+
             _eyePos.Y = _radius * MathHelper.Cosf(_phi);
 
             // Build the view matrix.
@@ -438,14 +445,15 @@ namespace DX12GameProgramming
 
             SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateBillBoardDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.DarkCyan, vertices, indices);
 
-
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
 
             SubmeshGeometry cone = AppendMeshData(GeometryGenerator.CreateCone(1.8f, 3.0f, 20, 20), Color.DarkOliveGreen, vertices, indices);
 
-
             SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.DarkKhaki, vertices, indices);
 
+            SubmeshGeometry gauss = AppendMeshData(GeometryGenerator.CreateGaussGrid(4.0f, 4.0f, 32, 32), Color.DarkBlue, vertices, indices);
+
+            SubmeshGeometry rotsym = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 40,40), Color.DarkBlue, vertices, indices);
 
 
 
@@ -462,6 +470,9 @@ namespace DX12GameProgramming
             geo.DrawArgs["cylinder"] = cylinder;
             geo.DrawArgs["cone"] = cone;
             geo.DrawArgs["torus"] = torus;
+
+            geo.DrawArgs["gauss"] = gauss;
+            geo.DrawArgs["rotsym"] = rotsym;
 
 
             _geometries[geo.Name] = geo;
@@ -549,30 +560,36 @@ namespace DX12GameProgramming
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
-                world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.8f, -5.0f));
+                world: Matrix.Scaling(1.0f, 1.0f, 1.0f) * Matrix.Translation(0.0f, 0.8f, -2.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
-                    world: Matrix.Translation(6.0f, 2.5f, 4.0f));
+                    world: Matrix.Translation(3.0f, 2.5f, 4.0f));
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
-                    world: Matrix.Translation(5.0f, 2.5f, 8.0f));
+                    world: Matrix.Translation(2.0f, 2.5f, 2.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
                     world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder",
-                   world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+                   world: Matrix.Translation(8.0f, 1.5f, 4.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cone",
-                  world: Matrix.Translation(5.0f, 1.5f, -5.0f));
+                  world: Matrix.Translation(5.0f, 1.5f, -1.0f));
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
                    world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
-                  world: Matrix.Translation(0.0f, 2.5f, 12.0f));
+                  world: Matrix.Scaling(.40f, .40f, .40f) * Matrix.Translation(0.0f, 2.5f, 5.0f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gauss",
+                   world: Matrix.Scaling(.40f, .40f, .40f) * Matrix.Translation(-8.0f, 1.5f, 4.0f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsym",
+                   world: Matrix.Scaling(.40f, .40f, .40f) *  Matrix.Translation(3.0f, 2.5f, -5.0f));
 
 
         }
