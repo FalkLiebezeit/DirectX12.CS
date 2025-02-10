@@ -45,7 +45,7 @@ namespace DX12GameProgramming
         private Matrix _proj = Matrix.Identity;
         private Matrix _view = Matrix.Identity;
 
-        private float _theta = 1.65f * MathUtil.Pi;
+        private float _theta = 1.5f * MathUtil.Pi;
         private float _phi = 0.4f * MathUtil.Pi;
         private float _radius = 15.0f;
 

@@ -40,7 +40,7 @@ namespace DX12GameProgramming
 
         private bool _isWireframe = true;
 
-        private int _isVisible = 1;
+        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic
 
         private Vector3 _eyePos;
         private Matrix _proj = Matrix.Identity;
@@ -225,7 +225,7 @@ namespace DX12GameProgramming
             _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
 
             if (keyCode == Keys.D3)
-                _isVisible = _isVisible < 1 ? _isVisible + 1 : _isVisible;
+                _isVisible = _isVisible < 2 ? _isVisible + 1 : _isVisible;
 
         }
 
@@ -243,10 +243,13 @@ namespace DX12GameProgramming
             {
                 _rootSignature?.Dispose();
                 _cbvHeap?.Dispose();
+
                 foreach (FrameResource frameResource in _frameResources) frameResource.Dispose();
                 foreach (MeshGeometry geometry in _geometries.Values) geometry.Dispose();
                 foreach (PipelineState pso in _psos.Values) pso.Dispose();
+
             }
+
             base.Dispose(disposing);
         }
 
@@ -434,6 +437,7 @@ namespace DX12GameProgramming
 
             SubmeshGeometry gaussgrid = AppendMeshData(GeometryGenerator.CreateGaussGrid(7.0f, 7.0f, 50, 50), Color.Blue, vertices, indices);
             SubmeshGeometry rotsymgrid = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 50, 50), Color.Blue, vertices, indices);
+            SubmeshGeometry parabolic = AppendMeshData(GeometryGenerator.CreateParabolic(6.0f, 6.0f, 20, 20), Color.Blue, vertices, indices);
 
 
 
@@ -465,6 +469,7 @@ namespace DX12GameProgramming
 
             geo.DrawArgs["gaussgrid"] = gaussgrid;
             geo.DrawArgs["rotsymgrid"] = rotsymgrid;
+            geo.DrawArgs["parabolic"] = parabolic;
 
 
             /*
@@ -565,6 +570,8 @@ namespace DX12GameProgramming
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gaussgrid");
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsymgrid");
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "parabolic");
 
 
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -45,7 +46,7 @@ namespace DX12GameProgramming
         private Matrix _view = Matrix.Identity;
 
         private float _theta = 1.65f * MathUtil.Pi;
-        private float _phi = 0.4f * MathUtil.Pi;
+        private float _phi = 0.475f * MathUtil.Pi;
         private float _radius = 15.0f;
 
         private Point _lastMousePos;
@@ -92,7 +93,7 @@ namespace DX12GameProgramming
 
         protected override void Update(GameTimer gt)
         {
-            UpdateCamera();
+            UpdateCamera(gt);
 
             // Cycle through the circular frame resource array.
             _currFrameResourceIndex = (_currFrameResourceIndex + 1) % NumFrameResources;
@@ -231,11 +232,20 @@ namespace DX12GameProgramming
             base.Dispose(disposing);
         }
 
-        private void UpdateCamera()
+        private void UpdateCamera(GameTimer gt)
         {
+            /*
             // Convert Spherical to Cartesian coordinates.
             _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta);
             _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta);
+            */
+
+            // Convert Spherical to Cartesian coordinates.
+            _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(3 * Math.PI / 2 + _theta * gt.TotalTime / 100.0f);
+            _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(3 * Math.PI / 2 + _theta * gt.TotalTime / 100.0f);
+
+
+
             _eyePos.Y = _radius * MathHelper.Cosf(_phi);
 
             // Build the view matrix.
@@ -404,9 +414,9 @@ namespace DX12GameProgramming
 
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
 
-            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), Color.ForestGreen, vertices, indices);
-            SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(0.5f, 20, 20), Color.Crimson, vertices, indices);
-            SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
+            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), Color.DarkGray, vertices, indices);
+
+          
 
             var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "shapeGeo");
 

@@ -44,14 +44,15 @@ namespace DX12GameProgramming
         private Matrix _view = Matrix.Identity;
 
         private float _theta = 1.5f * MathUtil.Pi;
-        private float _phi = 0.4f * MathUtil.Pi;
-        private float _radius = 15.0f;
+        private float _phi = 0.45f * MathUtil.Pi;
+
+        private float _radius = 20.0f;
 
         private Point _lastMousePos;
 
         public ShapesModelApp()
         {
-            MainWindowCaption = "shapes & model";
+            MainWindowCaption = "shapes & model - Press ESC to Quit";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -93,7 +94,7 @@ namespace DX12GameProgramming
 
         protected override void Update(GameTimer gt)
         {
-            UpdateCamera();
+            UpdateCamera(gt);
 
             // Cycle through the circular frame resource array.
             _currFrameResourceIndex = (_currFrameResourceIndex + 1) % NumFrameResources;
@@ -213,16 +214,23 @@ namespace DX12GameProgramming
             base.Dispose(disposing);
         }
 
-        private void UpdateCamera()
+        private void UpdateCamera(GameTimer gt)
         {
-            // Convert Spherical to Cartesian coordinates.
-            _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta);
-            _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta);
-            _eyePos.Y = _radius * MathHelper.Cosf(_phi);
+            if (gt.TotalTime > 0.03f)
+            {
 
-            // Build the view matrix.
-            _view = Matrix.LookAtLH(_eyePos, Vector3.Zero, Vector3.Up);
+                // Convert Spherical to Cartesian coordinates.
+                _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(3 * Math.PI / 2 + _theta * gt.TotalTime / 100.0f);
+                _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(3 * Math.PI / 2 + _theta * gt.TotalTime / 100.0f);
+
+
+                _eyePos.Y = _radius * MathHelper.Cosf(_phi);
+
+                // Build the view matrix.
+                _view = Matrix.LookAtLH(_eyePos, Vector3.Zero, Vector3.Up);
+            }
         }
+        
 
         private void UpdateObjectCBs()
         {
@@ -340,9 +348,14 @@ namespace DX12GameProgramming
             var indices = new List<short>();
 
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), vertices, indices);
+
             SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(20.0f, 30.0f, 60, 40), vertices, indices);
+
             SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(0.5f, 20, 20), vertices, indices);
+
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20), vertices, indices);
+
+
 
             var geo = MeshGeometry.New(Device, CommandList, vertices.ToArray(), indices.ToArray(), "shapeGeo");
 

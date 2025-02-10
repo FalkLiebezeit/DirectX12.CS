@@ -20,7 +20,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxTex", "Samples\09-Crate\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WavesTex", "Samples\09-TexWaves\WavesTex.csproj", "{2136E616-F0D8-4F55-BF31-D26F4100A072}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ColumnsTex", "Samples\09-TexColumns\ColumnsTex.csproj", "{B7E332DD-A269-48C8-9A2D-DC431B71049E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShapesTex", "Samples\09-TexColumns\ShapesTex.csproj", "{B7E332DD-A269-48C8-9A2D-DC431B71049E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blend", "Samples\10-Blend\Blend.csproj", "{29819A80-A0A5-47EC-8937-593947065CCA}"
 EndProject
@@ -87,7 +87,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxWiredPointList", "Sample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoxWiredCamera", "Samples\014-BoxCameraWire\BoxWiredCamera.csproj", "{09929D57-95CA-49A0-86DC-D3C213C65AF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShapesCamTex", "Samples\071 - CameraShapes\ShapesCamTex.csproj", "{CB4EE46E-7C2D-431D-9223-86DD56528343}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShapesTexCam", "Samples\071 - CameraShapes\ShapesTexCam.csproj", "{CB4EE46E-7C2D-431D-9223-86DD56528343}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShapesMoving", "Samples\073-ShapesMoving\ShapesMoving.csproj", "{84BC8E8D-91EE-4544-89D5-D8BDD47BC3DF}"
 EndProject
