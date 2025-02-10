@@ -40,7 +40,7 @@ namespace DX12GameProgramming
 
         private bool _isWireframe = true;
 
-        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic
+        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic
 
         private Vector3 _eyePos;
         private Matrix _proj = Matrix.Identity;
@@ -225,7 +225,7 @@ namespace DX12GameProgramming
             _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
 
             if (keyCode == Keys.D3)
-                _isVisible = _isVisible < 2 ? _isVisible + 1 : _isVisible;
+                _isVisible = _isVisible < 3 ? _isVisible + 1 : _isVisible;
 
         }
 
@@ -435,11 +435,12 @@ namespace DX12GameProgramming
             var vertices = new List<Vertex>();
             var indices = new List<short>();
 
-            SubmeshGeometry gaussgrid = AppendMeshData(GeometryGenerator.CreateGaussGrid(7.0f, 7.0f, 50, 50), Color.Blue, vertices, indices);
-            SubmeshGeometry rotsymgrid = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 50, 50), Color.Blue, vertices, indices);
-            SubmeshGeometry parabolic = AppendMeshData(GeometryGenerator.CreateParabolic(6.0f, 6.0f, 20, 20), Color.Blue, vertices, indices);
+            SubmeshGeometry gaussgrid = AppendMeshData(GeometryGenerator.CreateGaussGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
+            SubmeshGeometry rotsymgrid = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
+            SubmeshGeometry parabolic = AppendMeshData(GeometryGenerator.CreateParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
-
+            SubmeshGeometry rotparabolic = AppendMeshData(GeometryGenerator.CreateRotParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
+            
 
             /*
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
@@ -470,6 +471,7 @@ namespace DX12GameProgramming
             geo.DrawArgs["gaussgrid"] = gaussgrid;
             geo.DrawArgs["rotsymgrid"] = rotsymgrid;
             geo.DrawArgs["parabolic"] = parabolic;
+            geo.DrawArgs["rotparabolic"] = rotparabolic;
 
 
             /*
@@ -572,6 +574,8 @@ namespace DX12GameProgramming
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsymgrid");
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "parabolic");
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotparabolic");
 
 
 

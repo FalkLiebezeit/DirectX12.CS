@@ -771,6 +771,64 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+        public static MeshData CreateRotParabolic(float width, float depth, int m, int n)
+        {
+            var meshData = new MeshData();
+
+            //
+            // Create the vertices.
+            //
+
+            float halfWidth = 0.5f * width;
+            float halfDepth = 0.5f * depth;
+
+            float dx = width / (n - 1);
+            float dz = depth / (m - 1);
+
+            float du = 1f / (n - 1);
+            float dv = 1f / (m - 1);
+
+            for (int i = 0; i < m; i++)
+            {
+                float z = halfDepth - i * dz;
+
+                for (int j = 0; j < n; j++)
+                {
+                    float x = -halfWidth + j * dx;
+
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, GetRotParabolicValue(x, z), z),
+                        new Vector3(0, 1, 0),
+                        new Vector3(1, 0, 0),
+
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+
+
+                }
+            }
+
+            //
+            // Create the indices.
+            //
+
+            // Iterate over each quad and compute indices.
+            for (int i = 0; i < m - 1; i++)
+            {
+                for (int j = 0; j < n - 1; j++)
+                {
+                    meshData.Indices32.Add(i * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j);
+
+                    meshData.Indices32.Add((i + 1) * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j + 1);
+                }
+            }
+
+            return meshData;
+        }
+
 
         /// <summary>
         ///  does not work
@@ -1101,21 +1159,61 @@ namespace DX12GameProgramming
         private static float GetParabolicValue(float x, float z)
         {
 
-            double a = 2;
+            double a = 0.75;
 
-            double b = 2;
+            double b = 0.75;
 
-            double termx = Math.Pow(x / 2, 2) / Math.Pow(a / 2, 2); // Math.Sin(x * x);
+            double p = 1;// 0.99
+                         
+            double q = -5;// 0.99;
 
-            double termz = Math.Pow(z /2 , 2) / Math.Pow(b / 2, 2);
+            /*
+            double termx = Math.Pow(x / 2, 2) / Math.Pow(a / 2, 2); // Math.Sin
+            double termz = Math.Pow(z / 2, 2) / Math.Pow(b / 2, 2);
+            */
 
 
-            return (float)((termx + termz) - 2);
+            double termx = a * Math.Pow(x, 2);  //x²
+
+            double termz = b * Math.Pow(z, 2);  //z²
+
+
+            return (float)( (termx + termz) / (2 * p) + q);    // 1/2p (x² + z²)
 
             // https://www.wolframalpha.com/input?i=%24%24z+%3D+%5Cfrac%7Bx2%7D%7Ba2%7D+%2B+%5Cfrac%7By2%7D%7Bb2%7D%24%24
 
         }
 
+
+        private static float GetRotParabolicValue(float x, float z)
+        {
+
+            double a = 0.75;
+
+            double b = 0.75;
+
+            double p = 1;// 0.99
+
+            double q = -1;// 0.99;
+
+            double u = 2;// 0.99;
+
+            /*
+            double termx = Math.Pow(x / 2, 2) / Math.Pow(a / 2, 2); // Math.Sin
+            double termz = Math.Pow(z / 2, 2) / Math.Pow(b / 2, 2);
+            */
+
+
+            double termx = Math.Pow(Math.Sqrt(u) * Math.Sin(x),2);   
+
+            double termz = Math.Pow(Math.Sqrt(u) * Math.Cos(z),2);   
+
+
+            return (float)((termx + termz) + q) ;    // 1/2p (x² + z²)
+
+            // https://www.wolframalpha.com/input?i=%24%24z+%3D+%5Cfrac%7Bx2%7D%7Ba2%7D+%2B+%5Cfrac%7By2%7D%7Bb2%7D%24%24
+
+        }
 
     }
 }

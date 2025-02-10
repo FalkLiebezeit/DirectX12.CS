@@ -124,6 +124,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeightMap00", "Samples\HeightMap00\HeightMap00.csproj", "{21387938-1FEB-426A-BE78-4A9D7B79D6F2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Math3DFunc", "Math3DFunc", "{64BC34BA-A6CE-4657-9FC5-A7820DCB38AD}"
+	ProjectSection(SolutionItems) = preProject
+		functions.txt = functions.txt
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GaussFunc", "Samples\Gauss3D\GaussFunc.csproj", "{87C8C307-7B50-4DC7-912F-6EF714A448F2}"
 EndProject
