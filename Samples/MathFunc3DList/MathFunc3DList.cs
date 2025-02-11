@@ -40,21 +40,23 @@ namespace DX12GameProgramming
 
         private bool _isWireframe = true;
 
-        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic
+        private int num_obj = 11; // number of objects
+        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = saddleparabolic, 5 = barrel
+        private int _dkey = 1;
 
         private Vector3 _eyePos;
         private Matrix _proj = Matrix.Identity;
         private Matrix _view = Matrix.Identity;
 
         private float _theta = 1.65f * MathUtil.Pi;
-        private float _phi = 0.4f * MathUtil.Pi;
+        private float _phi = 0.28f * MathUtil.Pi;
         private float _radius = 15.0f;
 
         private Point _lastMousePos;
 
         public MathFunc3DList()
         {
-            MainWindowCaption = "collection of 3D math funcs - PRESS 1,2 or 3 for more ...";
+            MainWindowCaption = "collection of 3D math funcs - PRESS SPACE for more ...";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -221,11 +223,40 @@ namespace DX12GameProgramming
             if (keyCode == Keys.D1)
                 _isWireframe = false;
 
+
+            /*
             if (keyCode == Keys.D2)
             _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
 
             if (keyCode == Keys.D3)
-                _isVisible = _isVisible < 3 ? _isVisible + 1 : _isVisible;
+                _isVisible = _isVisible < 4 ? _isVisible + 1 : _isVisible;
+
+            */
+
+
+            if (keyCode == Keys.Space)
+            {
+                _isVisible += _dkey;
+            }
+
+            if (_isVisible == num_obj || _isVisible == 0)
+            {
+                _dkey *= -1;
+            }
+
+
+            /*
+            if (keyCode == Keys.Space)
+                _isVisible = _isVisible < 4 ? _isVisible + _dkey : _isVisible;
+         
+
+
+            if (keyCode == Keys.Space)
+                _isVisible += _dkey;
+
+            if (_isVisible == 4 || _isVisible == 0) _dkey *= -1 ;
+   */
+
 
         }
 
@@ -440,50 +471,61 @@ namespace DX12GameProgramming
             SubmeshGeometry parabolic = AppendMeshData(GeometryGenerator.CreateParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
             SubmeshGeometry rotparabolic = AppendMeshData(GeometryGenerator.CreateRotParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
-            
 
-            /*
-            SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
+            SubmeshGeometry saddleparabolic = AppendMeshData(GeometryGenerator.CreateSaddleParabolic(3.0f, 3.0f, 20, 20), Color.Blue, vertices, indices);
+
+            SubmeshGeometry barrel = AppendMeshData(GeometryGenerator.CreateBarrel(4.0f, 4.0f, 20, 20), Color.Blue, vertices, indices);
 
            
-            SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
+            SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(3.0f, 2.0f, 3.0f, 3), Color.DarkGreen, vertices, indices);
+
+           
+            //SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
 
             SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(1.5f, 20, 20), Color.Crimson, vertices, indices);
 
+
+
+            
             SubmeshGeometry ellipse = AppendMeshData(GeometryGenerator.CreateEllipse(1.5f, 2.5f, 20, 20), Color.Black, vertices, indices);
 
-            SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateBillBoardDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.DarkCyan, vertices, indices);
+           // SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateBillBoardDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.DarkCyan, vertices, indices);
 
 
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
 
+            
             SubmeshGeometry cone = AppendMeshData(GeometryGenerator.CreateCone(1.8f, 3.0f, 20, 20), Color.DarkOliveGreen, vertices, indices);
 
 
-            SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.DarkKhaki, vertices, indices);
-            */
+            SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.DarkRed, vertices, indices);
+            
 
 
 
             var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "shapeGeo");
 
 
+
             geo.DrawArgs["gaussgrid"] = gaussgrid;
             geo.DrawArgs["rotsymgrid"] = rotsymgrid;
             geo.DrawArgs["parabolic"] = parabolic;
             geo.DrawArgs["rotparabolic"] = rotparabolic;
+            geo.DrawArgs["saddleparabolic"] = saddleparabolic;
+            geo.DrawArgs["barrel"] = barrel;
 
-
-            /*
             geo.DrawArgs["box"] = box;
-            geo.DrawArgs["quad"] = quad;
             geo.DrawArgs["sphere"] = sphere;
             geo.DrawArgs["ellipse"] = ellipse;
-            geo.DrawArgs["disc"] = disc;
-
             geo.DrawArgs["cylinder"] = cylinder;
+
             geo.DrawArgs["cone"] = cone;
             geo.DrawArgs["torus"] = torus;
+
+            /*
+            geo.DrawArgs["quad"] = quad;
+            geo.DrawArgs["disc"] = disc;
+           
             */
 
             _geometries[geo.Name] = geo;
@@ -577,34 +619,39 @@ namespace DX12GameProgramming
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotparabolic");
 
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "saddleparabolic");
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "barrel");
 
 
-            /*
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
-                world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.8f, -5.0f));
-
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
-                    world: Matrix.Translation(6.0f, 2.5f, 4.0f));
 
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
-                    world: Matrix.Translation(5.0f, 2.5f, 8.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box");
+            // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
-                    world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere");
+            //world: Matrix.Translation(5.0f, 2.5f, 8.0f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder",
-                   world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse");
+                //world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cone",
-                  world: Matrix.Translation(5.0f, 1.5f, -5.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder");
+            //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+
+           
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cone");
+            //world: Matrix.Translation(5.0f, 1.5f, -5.0f));
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
-                   world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
 
+ /*
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
-                  world: Matrix.Translation(0.0f, 2.5f, 12.0f));
+
+             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
+                               world: Matrix.Translation(6.0f, 2.5f, 4.0f));
             */
 
         }

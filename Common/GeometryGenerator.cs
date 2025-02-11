@@ -829,6 +829,122 @@ namespace DX12GameProgramming
             return meshData;
         }
 
+        public static MeshData CreateSaddleParabolic(float width, float depth, int m, int n)
+        {
+            var meshData = new MeshData();
+
+            //
+            // Create the vertices.
+            //
+
+            float halfWidth = 0.5f * width;
+            float halfDepth = 0.5f * depth;
+
+            float dx = width / (n - 1);
+            float dz = depth / (m - 1);
+
+            float du = 1f / (n - 1);
+            float dv = 1f / (m - 1);
+
+            for (int i = 0; i < m; i++)
+            {
+                float z = halfDepth - i * dz;
+
+                for (int j = 0; j < n; j++)
+                {
+                    float x = -halfWidth + j * dx;
+
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, GetSaddleParabolicValue(x, z), z),
+                        new Vector3(0, 1, 0),
+                        new Vector3(1, 0, 0),
+
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+
+
+                }
+            }
+
+            //
+            // Create the indices.
+            //
+
+            // Iterate over each quad and compute indices.
+            for (int i = 0; i < m - 1; i++)
+            {
+                for (int j = 0; j < n - 1; j++)
+                {
+                    meshData.Indices32.Add(i * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j);
+
+                    meshData.Indices32.Add((i + 1) * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j + 1);
+                }
+            }
+
+            return meshData;
+        }
+
+        public static MeshData CreateBarrel(float width, float depth, int m, int n)
+        {
+            var meshData = new MeshData();
+
+            //
+            // Create the vertices.
+            //
+
+            float halfWidth = 0.5f * width;
+            float halfDepth = 0.5f * depth;
+
+            float dx = width / (n - 1);
+            float dz = depth / (m - 1);
+
+            float du = 1f / (n - 1);
+            float dv = 1f / (m - 1);
+
+            for (int i = 0; i < m; i++)
+            {
+                float z = halfDepth - i * dz;
+
+                for (int j = 0; j < n; j++)
+                {
+                    float x = -halfWidth + j * dx;
+
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, GetBarrelValue(x, z), z),
+                        new Vector3(0, 1, 0),
+                        new Vector3(1, 0, 0),
+
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+
+
+                }
+            }
+
+            //
+            // Create the indices.
+            //
+
+            // Iterate over each quad and compute indices.
+            for (int i = 0; i < m - 1; i++)
+            {
+                for (int j = 0; j < n - 1; j++)
+                {
+                    meshData.Indices32.Add(i * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j);
+
+                    meshData.Indices32.Add((i + 1) * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j + 1);
+                }
+            }
+
+            return meshData;
+        }
+
 
         /// <summary>
         ///  does not work
@@ -1183,8 +1299,6 @@ namespace DX12GameProgramming
             // https://www.wolframalpha.com/input?i=%24%24z+%3D+%5Cfrac%7Bx2%7D%7Ba2%7D+%2B+%5Cfrac%7By2%7D%7Bb2%7D%24%24
 
         }
-
-
         private static float GetRotParabolicValue(float x, float z)
         {
 
@@ -1214,6 +1328,79 @@ namespace DX12GameProgramming
             // https://www.wolframalpha.com/input?i=%24%24z+%3D+%5Cfrac%7Bx2%7D%7Ba2%7D+%2B+%5Cfrac%7By2%7D%7Bb2%7D%24%24
 
         }
+
+        private static float GetSaddleParabolicValue(float x, float z)
+        {
+
+            ///Saddle surface:
+            /// z = x ^ 2 - y ^ 2
+
+            
+            double a = 1.0f;
+
+            double b = 1.0f;
+
+
+            /*
+            double p = 1;// 0.99
+            double u = 2;// 0.99;
+            */
+
+            /*
+            double termx = Math.Pow(x / 2, 2) / Math.Pow(a / 2, 2); // Math.Sin
+            double termz = Math.Pow(z / 2, 2) / Math.Pow(b / 2, 2);
+            */
+
+            double q = -1;// 0.99;
+
+            double termx = a * Math.Pow(x * 1.25f, 2);
+
+            double termz = b * Math.Pow(z * 1.2f, 2);
+
+
+            return (float)((termx - termz) + q);   
+
+            // https://www.wolframalpha.com/input?i=%24%24z+%3D+%5Cfrac%7Bx2%7D%7Ba2%7D+%2B+%5Cfrac%7By2%7D%7Bb2%7D%24%24
+
+        }
+
+        private static float GetBarrelValue(float x, float z)
+        {
+
+            ///Barrel  surface:
+            /// z = r * (1 - (2z/h)²2)
+
+
+            double a = 1.0f;
+
+            double b = 1.0f;
+
+
+            /*
+            double p = 1;// 0.99
+            double u = 2;// 0.99;
+            */
+
+            /*
+            double termx = Math.Pow(x / 2, 2) / Math.Pow(a / 2, 2); // Math.Sin
+            double termz = Math.Pow(z / 2, 2) / Math.Pow(b / 2, 2);
+            */
+
+            double q = -1;// 0.99;
+
+            double termx = a * Math.Pow(x * 1.25f, 2);
+
+            double termz = b * Math.Pow(z * 1.2f, 2);
+
+
+
+
+            return (float)((termx - termz) + q);
+
+            // https://www.wolframalpha.com/input?i=%24%24z+%3D+%5Cfrac%7Bx2%7D%7Ba2%7D+%2B+%5Cfrac%7By2%7D%7Bb2%7D%24%24
+
+        }
+
 
     }
 }

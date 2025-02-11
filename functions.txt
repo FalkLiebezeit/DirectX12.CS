@@ -1,3 +1,7 @@
 https://de.wikipedia.org/wiki/Parabel_(Mathematik)
 
 https://mathematische-basteleien.de/paraboloid.htm
+
+
+Saddle surface:
+z = x^2 - y^2
