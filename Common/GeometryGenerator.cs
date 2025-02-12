@@ -295,6 +295,7 @@ namespace DX12GameProgramming
             var meshData = new MeshData();
 
             BuildCylinderSide(bottomRadius, topRadius, height, sliceCount, stackCount, meshData);
+
             BuildCylinderTopCap(topRadius, height, sliceCount, meshData);
             BuildCylinderBottomCap(bottomRadius, height, sliceCount, meshData);
 
@@ -534,7 +535,7 @@ namespace DX12GameProgramming
             return meshData;
         }
 
-        public static MeshData CreateBillBoardDisc(float innerRadius, float outerRadius, float height, int sliceCount, int stackCount)
+        public static MeshData CreateDisc(float innerRadius, float outerRadius, float height, int sliceCount, int stackCount)
         {
             var meshData = new MeshData();
 
@@ -886,61 +887,17 @@ namespace DX12GameProgramming
 
             return meshData;
         }
-
-        public static MeshData CreateBarrel(float width, float depth, int m, int n)
+       
+        public static MeshData CreateBellyBarrel(float Radius, float height, int sliceCount, int stackCount)
         {
             var meshData = new MeshData();
 
-            //
-            // Create the vertices.
-            //
+            BuildBarrelCylinderSide(Radius, height, sliceCount, stackCount, meshData);
 
-            float halfWidth = 0.5f * width;
-            float halfDepth = 0.5f * depth;
-
-            float dx = width / (n - 1);
-            float dz = depth / (m - 1);
-
-            float du = 1f / (n - 1);
-            float dv = 1f / (m - 1);
-
-            for (int i = 0; i < m; i++)
-            {
-                float z = halfDepth - i * dz;
-
-                for (int j = 0; j < n; j++)
-                {
-                    float x = -halfWidth + j * dx;
-
-                    meshData.Vertices.Add(new Vertex(
-                        new Vector3(x, GetBarrelValue(x, z), z),
-                        new Vector3(0, 1, 0),
-                        new Vector3(1, 0, 0),
-
-                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
-
-
-                }
-            }
-
-            //
-            // Create the indices.
-            //
-
-            // Iterate over each quad and compute indices.
-            for (int i = 0; i < m - 1; i++)
-            {
-                for (int j = 0; j < n - 1; j++)
-                {
-                    meshData.Indices32.Add(i * n + j);
-                    meshData.Indices32.Add(i * n + j + 1);
-                    meshData.Indices32.Add((i + 1) * n + j);
-
-                    meshData.Indices32.Add((i + 1) * n + j);
-                    meshData.Indices32.Add(i * n + j + 1);
-                    meshData.Indices32.Add((i + 1) * n + j + 1);
-                }
-            }
+            
+            BuildCylinderTopCap(Radius, height, sliceCount, meshData);
+            BuildCylinderBottomCap(Radius, height, sliceCount, meshData);
+            
 
             return meshData;
         }
@@ -1111,10 +1068,12 @@ namespace DX12GameProgramming
             for (int i = 0; i < ringCount; i++)
             {
                 float y = -0.5f * height + i * stackHeight;
+
                 float r = bottomRadius + i * radiusStep;
 
                 // Vertices of ring.
                 float dTheta = 2.0f * MathUtil.Pi / sliceCount;
+
                 for (int j = 0; j <= sliceCount; j++)
                 {
                     float c = MathHelper.Cosf(j * dTheta);
@@ -1152,6 +1111,78 @@ namespace DX12GameProgramming
                 }
             }
         }
+
+        private static void BuildBarrelCylinderSide(float Radius, 
+           float height, int sliceCount, int stackCount, MeshData meshData)
+        {
+            float stackHeight = height / stackCount;
+
+            // Amount to increment radius as we move up each stack level from bottom to top.
+            float radiusStep = (Radius - Radius) / stackCount;
+
+            int ringCount = stackCount + 1;
+
+            // Compute vertices for each stack ring starting at the bottom and moving up.
+            for (int i = 0; i < ringCount; i++)
+            {
+                float y = -0.5f * height + i * stackHeight;
+
+                float r = Radius + i * radiusStep;
+
+
+                /*
+                belly barrel
+                r(h) = r_0 + r_max * (4h/h_max) * (1 - (h/h_max)²)
+
+                r_0 - start radius
+                h - height
+                r_max - max radius
+                h_max - max height
+
+                */
+
+
+                // Vertices of ring.
+                float dTheta = 2.0f * MathUtil.Pi / sliceCount;
+
+                for (int j = 0; j <= sliceCount; j++)
+                {
+                    float c = MathHelper.Cosf(j * dTheta);
+                    float s = MathHelper.Sinf(j * dTheta);
+
+                    var pos = new Vector3(r * c, y, r * s);
+                    var uv = new Vector2((float)j / sliceCount, 1f - (float)i / stackCount);
+                    var tangent = new Vector3(-s, 0.0f, c);
+
+                    float dr = Radius - Radius;
+                    var bitangent = new Vector3(dr * c, -height, dr * s);
+
+                    var normal = Vector3.Cross(tangent, bitangent);
+                    normal.Normalize();
+                    meshData.Vertices.Add(new Vertex(pos, normal, tangent, uv));
+                }
+            }
+
+            // Add one because we duplicate the first and last vertex per ring
+            // since the texture coordinates are different.
+            int ringVertexCount = sliceCount + 1;
+
+            // Compute indices for each stack.
+            for (int i = 0; i < stackCount; i++)
+            {
+                for (int j = 0; j < sliceCount; j++)
+                {
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+                    meshData.Indices32.Add(i * ringVertexCount + j + 1);
+                }
+            }
+        }
+
 
         private static void BuildCylinderTopCap(float topRadius, float height,
             int sliceCount, MeshData meshData)
