@@ -892,7 +892,7 @@ namespace DX12GameProgramming
         {
             var meshData = new MeshData();
 
-            BuildBarrelCylinderSide(Radius, height, sliceCount, stackCount, meshData);
+            BuildBellyBarrelCylinderSide(Radius, height, sliceCount, stackCount, meshData);
 
             
             BuildCylinderTopCap(Radius, height, sliceCount, meshData);
@@ -1112,26 +1112,27 @@ namespace DX12GameProgramming
             }
         }
 
-        private static void BuildBarrelCylinderSide(float Radius, 
+        private static void BuildBellyBarrelCylinderSide(float Radius, 
            float height, int sliceCount, int stackCount, MeshData meshData)
         {
             float stackHeight = height / stackCount;
 
             // Amount to increment radius as we move up each stack level from bottom to top.
-            float radiusStep = (Radius - Radius) / stackCount;
+            float radiusStep = 0.0f;// (Radius - Radius) / stackCount;
 
             int ringCount = stackCount + 1;
 
             // Compute vertices for each stack ring starting at the bottom and moving up.
             for (int i = 0; i < ringCount; i++)
             {
-                float y = -0.5f * height + i * stackHeight;
+                float h = i * stackHeight;
 
-                float r = Radius + i * radiusStep;
-
+                float y = - 0.5f * height + h; // i * stackHeight;
 
                 /*
+                 
                 belly barrel
+
                 r(h) = r_0 + r_max * (4h/h_max) * (1 - (h/h_max)²)
 
                 r_0 - start radius
@@ -1140,6 +1141,8 @@ namespace DX12GameProgramming
                 h_max - max height
 
                 */
+
+                float r = Radius + Radius * (h / height) * (1 - (h / height) * (h / height));
 
 
                 // Vertices of ring.

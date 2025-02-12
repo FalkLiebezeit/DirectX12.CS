@@ -228,27 +228,42 @@ namespace DX12GameProgramming
 
         protected override void OnKeyDown(Keys keyCode)
         {
-
+            base.OnKeyDown(keyCode);
 
             MainWindowCaption = "collection of 3D math funcs ";
 
             if (keyCode == Keys.D1)
+            {
+                // if pressed key 1 on the keyboard
                 _isWireframe = false;
+                // _isVisible = 0;
+            }
+
+
+
+            if (keyCode == Keys.D2)
+                _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
+
+            if (keyCode == Keys.D3)
+                _isVisible = _isVisible < num_obj ? _isVisible + 1 : _isVisible;
+
+
+            if (keyCode == Keys.Space || keyCode == Keys.Right)
+            {
+                _isVisible += _dkey;
+            }
+            else if (keyCode == Keys.Left)
+            {
+                _isVisible -= _dkey;
+            }
 
 
             /*
-            if (keyCode == Keys.D2)
-            _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
-
-            if (keyCode == Keys.D3)
-                _isVisible = _isVisible < 4 ? _isVisible + 1 : _isVisible;
-
-            */
-
             if (keyCode == Keys.Space)
             {
                 _isVisible += _dkey;
             }
+            
 
             if (keyCode == Keys.Right)
             {
@@ -260,15 +275,25 @@ namespace DX12GameProgramming
                 _isVisible -= _dkey;
             }
 
+            */
 
-            if (_isVisible == num_obj || _isVisible == 0)
+
+            if (_isVisible >= num_obj || _isVisible <= 0)
             {
                 _dkey *= -1;
             }
 
-            // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = saddleparabolic,
-                                    // 5 = bellybarrel
-           
+
+            /*
+                Using the `Clamp` method, you can directly constrain the value of `_isVisible` to a range between `0` and `num_obj`.
+                This makes the code more concise and efficient.
+             */
+
+            _isVisible = Clamp(_isVisible, 0, num_obj);
+
+
+          
+
             switch (_isVisible)
             {
                 case 0:
@@ -300,7 +325,7 @@ namespace DX12GameProgramming
                     break;
             }
 
-            MainWindowCaption += "        press SPACE for more ...  ";
+            MainWindowCaption += "        press SPACE for more ->  objnumber: " + _isVisible;
 
         }
 
@@ -743,25 +768,30 @@ namespace DX12GameProgramming
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "saddleparabolic");
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "bellybarrel",
-                  world: Matrix.Scaling(2.0f, 2.0f, 2.0f));//world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+                  world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
 
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box");
-            // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere");
-            //world: Matrix.Translation(5.0f, 2.5f, 8.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(5.0f, 2.5f, 8.0f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse");
-                //world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder",
-                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));//world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cone");
-            //world: Matrix.Translation(5.0f, 1.5f, -5.0f));
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cone",
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
@@ -821,6 +851,13 @@ namespace DX12GameProgramming
                     cmdList.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
                 }
             }
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
         }
     }
 }
