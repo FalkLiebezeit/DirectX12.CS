@@ -830,7 +830,7 @@ namespace DX12GameProgramming
             return meshData;
         }
 
-        public static MeshData CreateSaddleParabolic(float width, float depth, int m, int n)
+        public static MeshData CreateHyperbolicParabolic(float width, float depth, int m, int n)
         {
             var meshData = new MeshData();
 
@@ -892,12 +892,28 @@ namespace DX12GameProgramming
         {
             var meshData = new MeshData();
 
-            BuildBellyBarrelCylinderSide(Radius, height, sliceCount, stackCount, meshData);
+           BuildBellyBarrelCylinderSide(Radius, height, sliceCount, stackCount, meshData);
 
             
             BuildCylinderTopCap(Radius, height, sliceCount, meshData);
-            BuildCylinderBottomCap(Radius, height, sliceCount, meshData);
-            
+
+            // BuildCylinderBottomCap(Radius, height, sliceCount, meshData);
+
+            //BuildBellyBarrelCylinderSide(Radius, height, sliceCount, stackCount, meshData);
+
+
+            return meshData;
+        }
+
+        public static MeshData CreateHyperBolBarrel(float Radius, float height, int sliceCount, int stackCount)
+        {
+            var meshData = new MeshData();
+
+            BuildHyperBolBarrelCylinderSide(Radius, height, sliceCount, stackCount, meshData);
+
+            BuildCylinderTopCap(Radius, height, sliceCount, meshData);
+
+            // BuildCylinderBottomCap(Radius, height, sliceCount, meshData);
 
             return meshData;
         }
@@ -1185,6 +1201,69 @@ namespace DX12GameProgramming
                 }
             }
         }
+
+        private static void BuildHyperBolBarrelCylinderSide(float Radius,
+          float height, int sliceCount, int stackCount, MeshData meshData)
+        {
+            float stackHeight = height / stackCount;
+
+            // Amount to increment radius as we move up each stack level from bottom to top.
+            //float radiusStep = 0.0f;// (Radius - Radius) / stackCount;
+
+            int ringCount = stackCount + 1;
+
+            // Compute vertices for each stack ring starting at the bottom and moving up.
+            for (int i = 0; i < ringCount; i++)
+            {
+                float h = i * stackHeight;
+
+                float y = -0.5f * height + h; // i * stackHeight;
+
+
+                float r = Radius - Radius * (h / height) * (1 - (h / height) * (h / height));
+
+
+                // Vertices of ring.
+                float dTheta = 2.0f * MathUtil.Pi / sliceCount;
+
+                for (int j = 0; j <= sliceCount; j++)
+                {
+                    float c = MathHelper.Cosf(j * dTheta);
+                    float s = MathHelper.Sinf(j * dTheta);
+
+                    var pos = new Vector3(r * c, y, r * s);
+                    var uv = new Vector2((float)j / sliceCount, 1f - (float)i / stackCount);
+                    var tangent = new Vector3(-s, 0.0f, c);
+
+                    float dr = Radius - Radius;
+                    var bitangent = new Vector3(dr * c, -height, dr * s);
+
+                    var normal = Vector3.Cross(tangent, bitangent);
+                    normal.Normalize();
+                    meshData.Vertices.Add(new Vertex(pos, normal, tangent, uv));
+                }
+            }
+
+            // Add one because we duplicate the first and last vertex per ring
+            // since the texture coordinates are different.
+            int ringVertexCount = sliceCount + 1;
+
+            // Compute indices for each stack.
+            for (int i = 0; i < stackCount; i++)
+            {
+                for (int j = 0; j < sliceCount; j++)
+                {
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+
+                    meshData.Indices32.Add(i * ringVertexCount + j);
+                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+                    meshData.Indices32.Add(i * ringVertexCount + j + 1);
+                }
+            }
+        }
+
 
 
         private static void BuildCylinderTopCap(float topRadius, float height,

@@ -1,14 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using SharpDX;
 using SharpDX.Direct3D12;
 using SharpDX.DXGI;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using Resource = SharpDX.Direct3D12.Resource;
 
 namespace DX12GameProgramming
@@ -45,9 +40,9 @@ namespace DX12GameProgramming
 
         private bool _isWireframe = true;
 
-        private int num_obj = 11;   // number of objects
-        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = saddleparabolic,
-                                    // 5 = bellybarrel
+        private int num_obj = 14;   // number of objects
+        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = hyperbolic parabolic,
+                                    // 5 = bellybarrel etc  
         private int _dkey = 1;
 
         private Vector3 _eyePos;
@@ -63,8 +58,8 @@ namespace DX12GameProgramming
         public MathFunc3DList()
         {
             MainWindowCaption = "collection of 3D math funcs";
-            MainWindowCaption += " - Gaussgrid - "; // default object
-            MainWindowCaption += "        press SPACE for more ...  ";
+            MainWindowCaption += " - gauss grid - ";  // default object
+            MainWindowCaption += "        press SPACE for more objects ... ";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -297,11 +292,11 @@ namespace DX12GameProgramming
             switch (_isVisible)
             {
                 case 0:
-                    MainWindowCaption += " - Gaussgrid - "; 
+                    MainWindowCaption += " - gauss grid - "; 
                     break;
 
                 case 1:
-                    MainWindowCaption += " - RotSymGrid - ";
+                    MainWindowCaption += " - rotationally symmetric grid - ";
                     break;
 
                 case 2:
@@ -309,15 +304,19 @@ namespace DX12GameProgramming
                     break;
 
                 case 3:
-                    MainWindowCaption += " - RotParaboloid - ";
+                    MainWindowCaption += " - rotationally symmetric paraboloid - ";
                     break;
 
                 case 4:
-                    MainWindowCaption += " - SaddleParaboloid - ";
+                    MainWindowCaption += " - hyperbolic paraboloid - ";
                     break;
 
                 case 5:
-                    MainWindowCaption += " - BellyBarrel - ";
+                    MainWindowCaption += " - belly barrel - ";
+                    break;
+
+                case 6:
+                    MainWindowCaption += " - hyperbolic barrel - ";
                     break;
 
                 default:
@@ -536,19 +535,21 @@ namespace DX12GameProgramming
             var indices = new List<short>();
 
             SubmeshGeometry gaussgrid = AppendMeshData(GeometryGenerator.CreateGaussGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
+
             SubmeshGeometry rotsymgrid = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
+
             SubmeshGeometry parabolic = AppendMeshData(GeometryGenerator.CreateParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
             SubmeshGeometry rotparabolic = AppendMeshData(GeometryGenerator.CreateRotParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
-            SubmeshGeometry saddleparabolic = AppendMeshData(GeometryGenerator.CreateSaddleParabolic(3.0f, 3.0f, 20, 20), Color.Blue, vertices, indices);
+            SubmeshGeometry hyperbolicparabolic = AppendMeshData(GeometryGenerator.CreateHyperbolicParabolic(3.0f, 3.0f, 20, 20), Color.Blue, vertices, indices);
 
             SubmeshGeometry bellybarrel = AppendMeshData(GeometryGenerator.CreateBellyBarrel(0.8f, 3.0f, 20, 20), Color.Blue, vertices, indices);
 
+            SubmeshGeometry hyperbolbarrel = AppendMeshData(GeometryGenerator.CreateHyperBolBarrel(0.8f, 3.0f, 20, 20), Color.Blue, vertices, indices);
 
 
-
-
+            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
 
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(3.0f, 2.0f, 3.0f, 3), Color.DarkGreen, vertices, indices);
            
@@ -558,7 +559,7 @@ namespace DX12GameProgramming
 
             SubmeshGeometry ellipse = AppendMeshData(GeometryGenerator.CreateEllipse(1.5f, 2.5f, 20, 20), Color.Black, vertices, indices);
 
-           // SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateBillBoardDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.DarkCyan, vertices, indices);
+           //SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateBillBoardDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.DarkCyan, vertices, indices);
 
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
             
@@ -577,9 +578,11 @@ namespace DX12GameProgramming
             geo.DrawArgs["rotsymgrid"] = rotsymgrid;
             geo.DrawArgs["parabolic"] = parabolic;
             geo.DrawArgs["rotparabolic"] = rotparabolic;
-            geo.DrawArgs["saddleparabolic"] = saddleparabolic;
+            geo.DrawArgs["hyperbolicparabolic"] = hyperbolicparabolic;
             geo.DrawArgs["bellybarrel"] = bellybarrel;
+            geo.DrawArgs["hyperbolbarrel"] = hyperbolbarrel;
 
+            geo.DrawArgs["grid"] = grid;
             geo.DrawArgs["box"] = box;
             geo.DrawArgs["sphere"] = sphere;
             geo.DrawArgs["ellipse"] = ellipse;
@@ -588,11 +591,11 @@ namespace DX12GameProgramming
             geo.DrawArgs["cone"] = cone;
             geo.DrawArgs["torus"] = torus;
 
-            /*
+            
             geo.DrawArgs["quad"] = quad;
-            geo.DrawArgs["disc"] = disc;
+           // geo.DrawArgs["disc"] = disc;
            
-            */
+            
 
             _geometries[geo.Name] = geo;
         }
@@ -765,13 +768,21 @@ namespace DX12GameProgramming
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotparabolic");
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "saddleparabolic");
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolicparabolic");
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "bellybarrel",
                   world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
-                    //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+            //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolbarrel",
+                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+            //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
 
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid",
+               world: Matrix.Scaling(4.0f, 4.0f, 4.0f));
+            // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
@@ -796,18 +807,23 @@ namespace DX12GameProgramming
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
-            //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
+                world: Matrix.Scaling(1.0f, 1.0f, 1.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
 
             /*
             AddRenderItem(RenderLayer.Opaque, j++, "skullMat", "skullGeo", "skull",
                world: Matrix.Scaling(0.5f) * Matrix.Translation(Vector3.UnitY));
+           
 
-            /*
-                       AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+ */
 
-                        AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
-                                          world: Matrix.Translation(6.0f, 2.5f, 4.0f));
-                */       
+
 
         }
 
