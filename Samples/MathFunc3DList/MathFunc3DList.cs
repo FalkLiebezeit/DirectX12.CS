@@ -4,6 +4,7 @@ using System.Threading;
 using SharpDX;
 using SharpDX.Direct3D12;
 using SharpDX.DXGI;
+
 using Resource = SharpDX.Direct3D12.Resource;
 
 namespace DX12GameProgramming
@@ -40,7 +41,7 @@ namespace DX12GameProgramming
 
         private bool _isWireframe = true;
 
-        private int num_obj = 14;   // number of objects
+        private int num_obj = 13;   // number of objects
         private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = hyperbolic parabolic,
                                     // 5 = bellybarrel etc  
         private int _dkey = 1;
@@ -49,8 +50,9 @@ namespace DX12GameProgramming
         private Matrix _proj = Matrix.Identity;
         private Matrix _view = Matrix.Identity;
 
-        private float _theta = 1.65f * MathUtil.Pi;
-        private float _phi = 0.28f * MathUtil.Pi;
+        private float _theta = 1.65f * MathUtil.Pi; // + 1f * MathUtil.Pi;
+        private float _phi = 0.28f * MathUtil.Pi;   // + 1f * MathUtil.Pi;
+
         private float _radius = 15.0f;
 
         private Point _lastMousePos;
@@ -549,11 +551,17 @@ namespace DX12GameProgramming
             SubmeshGeometry hyperbolbarrel = AppendMeshData(GeometryGenerator.CreateHyperBolBarrel(0.8f, 3.0f, 20, 20), Color.Blue, vertices, indices);
 
 
-            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
+
+
+            SubmeshGeometry gridXZ = AppendMeshData(GeometryGenerator.CreateXZGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
+
+            //SubmeshGeometry gridXY = AppendMeshData(GeometryGenerator.CreateXYGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
+
+
 
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(3.0f, 2.0f, 3.0f, 3), Color.DarkGreen, vertices, indices);
            
-            SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
+            //SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
 
             SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(1.5f, 20, 20), Color.Crimson, vertices, indices);
 
@@ -582,7 +590,10 @@ namespace DX12GameProgramming
             geo.DrawArgs["bellybarrel"] = bellybarrel;
             geo.DrawArgs["hyperbolbarrel"] = hyperbolbarrel;
 
-            geo.DrawArgs["grid"] = grid;
+            geo.DrawArgs["gridXZ"] = gridXZ;
+            //geo.DrawArgs["gridXY"] = gridXY;
+
+
             geo.DrawArgs["box"] = box;
             geo.DrawArgs["sphere"] = sphere;
             geo.DrawArgs["ellipse"] = ellipse;
@@ -592,7 +603,7 @@ namespace DX12GameProgramming
             geo.DrawArgs["torus"] = torus;
 
             
-            geo.DrawArgs["quad"] = quad;
+            //geo.DrawArgs["quad"] = quad;
            // geo.DrawArgs["disc"] = disc;
            
             
@@ -760,29 +771,40 @@ namespace DX12GameProgramming
 
 
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gaussgrid");
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gaussgrid",
+                     world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsymgrid");
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsymgrid",
+                     world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "parabolic");
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotparabolic");
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolicparabolic");
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolicparabolic",
+                     world: Matrix.Scaling(2.2f, 1.20f, 1.20f));
+                        // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "bellybarrel",
                   world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
-            //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+                        //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolbarrel",
                  world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
-            //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+                        //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
 
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid",
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gridXZ",
                world: Matrix.Scaling(4.0f, 4.0f, 4.0f));
             // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+
+            /*
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gridXY",
+              world: Matrix.Scaling(4.0f, 4.0f, 4.0f));
+            // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+            */
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
@@ -809,9 +831,11 @@ namespace DX12GameProgramming
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
                     //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
 
+            /*
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
                 world: Matrix.Scaling(1.0f, 1.0f, 1.0f));
                     //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+            */
 
             /*
             AddRenderItem(RenderLayer.Opaque, j++, "skullMat", "skullGeo", "skull",
