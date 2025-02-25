@@ -777,9 +777,9 @@ namespace DX12GameProgramming
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsymgrid",
                      world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "parabolic");
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "parabolic", world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotparabolic");
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotparabolic", world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolicparabolic",
                      world: Matrix.Scaling(2.2f, 1.20f, 1.20f));

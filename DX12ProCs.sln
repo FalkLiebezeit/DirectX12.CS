@@ -182,6 +182,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathFunc3DList", "Samples\M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShapesBasics", "Samples\ShapesBasics\ShapesBasics.csproj", "{DBB8E10E-8427-48AB-B044-6E708C686B4F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShapesList", "Samples\ShapesList\ShapesList.csproj", "{9338A3B6-4D96-DD3E-C91B-CB8F8D286E23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -440,6 +442,10 @@ Global
 		{DBB8E10E-8427-48AB-B044-6E708C686B4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBB8E10E-8427-48AB-B044-6E708C686B4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBB8E10E-8427-48AB-B044-6E708C686B4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9338A3B6-4D96-DD3E-C91B-CB8F8D286E23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9338A3B6-4D96-DD3E-C91B-CB8F8D286E23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9338A3B6-4D96-DD3E-C91B-CB8F8D286E23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9338A3B6-4D96-DD3E-C91B-CB8F8D286E23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -523,5 +529,6 @@ Global
 		{6786268C-8580-40B2-8C34-8FEA9572DD20} = {BA778E5F-EB9E-4CA7-8C4A-D5650B8CB4C2}
 		{665949B6-60D1-40AF-8563-C21F654B8711} = {64BC34BA-A6CE-4657-9FC5-A7820DCB38AD}
 		{DBB8E10E-8427-48AB-B044-6E708C686B4F} = {ADDB0BAA-D86C-4B02-B233-BFDED50D18A0}
+		{9338A3B6-4D96-DD3E-C91B-CB8F8D286E23} = {ADDB0BAA-D86C-4B02-B233-BFDED50D18A0}
 	EndGlobalSection
 EndGlobal

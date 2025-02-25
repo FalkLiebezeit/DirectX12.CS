@@ -4,11 +4,12 @@ using System.Threading;
 using SharpDX;
 using SharpDX.Direct3D12;
 using SharpDX.DXGI;
+
 using Resource = SharpDX.Direct3D12.Resource;
 
 namespace DX12GameProgramming
 {
-    public class ShapesBasics : D3DApp
+    public class ShapesList : D3DApp
     {
         private readonly List<FrameResource> _frameResources = new List<FrameResource>(NumFrameResources);
         private readonly List<AutoResetEvent> _fenceEvents = new List<AutoResetEvent>(NumFrameResources);
@@ -39,21 +40,28 @@ namespace DX12GameProgramming
         private int _passCbvOffset;
 
         private bool _isWireframe = true;
-        private int _isVisible = -1;
+
+        private int num_obj = 13;   // number of objects
+        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = hyperbolic parabolic,
+                                    // 5 = bellybarrel etc  
+        private int _dkey = 1;
 
         private Vector3 _eyePos;
         private Matrix _proj = Matrix.Identity;
         private Matrix _view = Matrix.Identity;
 
-        private float _theta = 1.5f * MathUtil.Pi;
-        private float _phi = 0.4f * MathUtil.Pi;
+        private float _theta = 1.65f * MathUtil.Pi; // + 1f * MathUtil.Pi;
+        private float _phi = 0.28f * MathUtil.Pi;   // + 1f * MathUtil.Pi;
+
         private float _radius = 15.0f;
 
         private Point _lastMousePos;
 
-        public ShapesBasics()
+        public ShapesList()
         {
-            MainWindowCaption = "simple shapes";
+            MainWindowCaption = "list of nice shapes";
+            MainWindowCaption += " - gauss grid - ";  // default object
+            MainWindowCaption += "        press SPACE for more objects ... ";
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -217,14 +225,102 @@ namespace DX12GameProgramming
 
         protected override void OnKeyDown(Keys keyCode)
         {
-            if (keyCode == Keys.D1)
-                _isWireframe = false;
+            base.OnKeyDown(keyCode);
 
+           
+            MainWindowCaption = "list of nice shapes";
+
+           
+
+            // if pressed key 1 on the keyboard
+            _isWireframe = (keyCode == Keys.D1) ? false : _isWireframe;
+
+            /*
             if (keyCode == Keys.D2)
-            _isVisible = _isVisible > -1 ? _isVisible - 1 : _isVisible;
+                _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
+            */
 
+            // key 2
+            _isVisible = (keyCode == Keys.D2) ? (_isVisible > 0 ? _isVisible - 1 : _isVisible) : _isVisible;
+
+
+            /*
             if (keyCode == Keys.D3)
-                _isVisible = _isVisible < 10 ? _isVisible + 1 : _isVisible;
+                _isVisible = _isVisible < num_obj ? _isVisible + 1 : _isVisible;
+            */
+
+            _isVisible = (keyCode == Keys.D3) ? (_isVisible < num_obj ? _isVisible + 1 : _isVisible) : _isVisible;
+
+            /*
+            if (keyCode == Keys.Space || keyCode == Keys.Right)
+            {
+                _isVisible += _dkey;
+            }
+            else if (keyCode == Keys.Left)
+            {
+                _isVisible -= _dkey;
+            }
+            */
+
+            _isVisible += (keyCode == Keys.Space || keyCode == Keys.Right) ? _dkey : (keyCode == Keys.Left ? -_dkey : 0);
+
+
+            /*
+            if (_isVisible >= num_obj || _isVisible <= 0)
+            {
+                _dkey *= -1;
+            }
+            */
+
+            _dkey *= (_isVisible >= num_obj || _isVisible <= 0) ? -1 : 1;
+
+
+            /*
+                Using the `Clamp` method, you can directly constrain the value of `_isVisible` to a range between `0` and `num_obj`.
+                This makes the code more concise and efficient.
+             */
+
+            _isVisible = Clamp(_isVisible, 0, num_obj);
+
+
+          
+
+            switch (_isVisible)
+            {
+                case 0:
+                    MainWindowCaption += " - gauss grid - "; 
+                    break;
+
+                case 1:
+                    MainWindowCaption += " - rotationally symmetric grid - ";
+                    break;
+
+                case 2:
+                    MainWindowCaption += " - Paraboloid - ";
+                    break;
+
+                case 3:
+                    MainWindowCaption += " - rotationally symmetric paraboloid - ";
+                    break;
+
+                case 4:
+                    MainWindowCaption += " - hyperbolic paraboloid - ";
+                    break;
+
+                case 5:
+                    MainWindowCaption += " - belly barrel - ";
+                    break;
+
+                case 6:
+                    MainWindowCaption += " - hyperbolic barrel - ";
+                    break;
+
+                default:
+                    MainWindowCaption += " - basic Objects - ";
+                    break;
+            }
+
+            MainWindowCaption += "        press SPACE for more ->  objnumber: " + _isVisible;
 
         }
 
@@ -242,10 +338,13 @@ namespace DX12GameProgramming
             {
                 _rootSignature?.Dispose();
                 _cbvHeap?.Dispose();
+
                 foreach (FrameResource frameResource in _frameResources) frameResource.Dispose();
                 foreach (MeshGeometry geometry in _geometries.Values) geometry.Dispose();
                 foreach (PipelineState pso in _psos.Values) pso.Dispose();
+
             }
+
             base.Dispose(disposing);
         }
 
@@ -260,6 +359,7 @@ namespace DX12GameProgramming
             // Convert Spherical to Cartesian coordinates.
             _eyePos.X = _radius * MathHelper.Sinf(_phi) * MathHelper.Cosf(_theta * gt.TotalTime / 100.0f);
             _eyePos.Z = _radius * MathHelper.Sinf(_phi) * MathHelper.Sinf(_theta * gt.TotalTime / 100.0f);
+
 
             _eyePos.Y = _radius * MathHelper.Cosf(_phi);
 
@@ -430,50 +530,77 @@ namespace DX12GameProgramming
             var vertices = new List<Vertex>();
             var indices = new List<short>();
 
+            SubmeshGeometry gaussgrid = AppendMeshData(GeometryGenerator.CreateGaussGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
-         
+            SubmeshGeometry rotsymgrid = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
-            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateXZGrid(20.0f, 30.0f, 60, 40), Color.Gainsboro, vertices, indices);
+            SubmeshGeometry parabolic = AppendMeshData(GeometryGenerator.CreateParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
-            SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(1.5f, 0.5f, 1.5f, 3), Color.DarkGreen, vertices, indices);
+            SubmeshGeometry rotparabolic = AppendMeshData(GeometryGenerator.CreateRotParabolic(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
-            SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
+            SubmeshGeometry hyperbolicparabolic = AppendMeshData(GeometryGenerator.CreateHyperbolicParabolic(3.0f, 3.0f, 20, 20), Color.Blue, vertices, indices);
+
+            SubmeshGeometry bellybarrel = AppendMeshData(GeometryGenerator.CreateBellyBarrel(0.8f, 3.0f, 20, 20), Color.Blue, vertices, indices);
+
+            SubmeshGeometry hyperbolbarrel = AppendMeshData(GeometryGenerator.CreateHyperBolBarrel(0.8f, 3.0f, 20, 20), Color.Blue, vertices, indices);
+
+
+
+
+            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
+
+            //SubmeshGeometry gridXY = AppendMeshData(GeometryGenerator.CreateXYGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
+
+
+
+            SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(3.0f, 2.0f, 3.0f, 3), Color.DarkGreen, vertices, indices);
+           
+            //SubmeshGeometry quad = AppendMeshData(GeometryGenerator.CreateQuad(0.0f, 0.0f, 2.5f, 2.5f, 1.0f), Color.DarkRed, vertices, indices);
 
             SubmeshGeometry sphere = AppendMeshData(GeometryGenerator.CreateSphere(1.5f, 20, 20), Color.Crimson, vertices, indices);
 
             SubmeshGeometry ellipse = AppendMeshData(GeometryGenerator.CreateEllipse(1.5f, 2.5f, 20, 20), Color.Black, vertices, indices);
 
-            SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateCylinder(3.5f, 3.5f, 2.0f, 20, 20), Color.DarkCyan, vertices, indices);
+           //SubmeshGeometry disc = AppendMeshData(GeometryGenerator.CreateBillBoardDisc(1.5f, 2.5f, 5.0f, 20, 20), Color.DarkCyan, vertices, indices);
 
             SubmeshGeometry cylinder = AppendMeshData(GeometryGenerator.CreateCylinder(0.8f, 0.3f, 3.0f, 20, 20), Color.SteelBlue, vertices, indices);
-
+            
             SubmeshGeometry cone = AppendMeshData(GeometryGenerator.CreateCone(1.8f, 3.0f, 20, 20), Color.DarkOliveGreen, vertices, indices);
 
-            SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.DarkKhaki, vertices, indices);
-
-            SubmeshGeometry gauss = AppendMeshData(GeometryGenerator.CreateGaussGrid(4.0f, 4.0f, 32, 32), Color.DarkBlue, vertices, indices);
-
-            SubmeshGeometry rotsym = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 40,40), Color.DarkBlue, vertices, indices);
+            SubmeshGeometry torus = AppendMeshData(GeometryGenerator.CreateTorus(0.5f, 1.0f, 20, 20), Color.DarkRed, vertices, indices);
+            
 
 
 
             var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "shapeGeo");
 
 
+
+            geo.DrawArgs["gaussgrid"] = gaussgrid;
+            geo.DrawArgs["rotsymgrid"] = rotsymgrid;
+            geo.DrawArgs["parabolic"] = parabolic;
+            geo.DrawArgs["rotparabolic"] = rotparabolic;
+            geo.DrawArgs["hyperbolicparabolic"] = hyperbolicparabolic;
+            geo.DrawArgs["bellybarrel"] = bellybarrel;
+            geo.DrawArgs["hyperbolbarrel"] = hyperbolbarrel;
+
             geo.DrawArgs["grid"] = grid;
+            //geo.DrawArgs["gridXY"] = gridXY;
+
+
             geo.DrawArgs["box"] = box;
-            geo.DrawArgs["quad"] = quad;
             geo.DrawArgs["sphere"] = sphere;
             geo.DrawArgs["ellipse"] = ellipse;
-            geo.DrawArgs["disc"] = disc;
-
             geo.DrawArgs["cylinder"] = cylinder;
+
             geo.DrawArgs["cone"] = cone;
             geo.DrawArgs["torus"] = torus;
 
-            geo.DrawArgs["gauss"] = gauss;
-            geo.DrawArgs["rotsym"] = rotsym;
-
+            
+            //geo.DrawArgs["quad"] = quad;
+           // geo.DrawArgs["disc"] = disc;
+           
+            
 
             _geometries[geo.Name] = geo;
         }
@@ -507,6 +634,86 @@ namespace DX12GameProgramming
 
             return submesh;
         }
+
+        /*
+        private void BuildSkullGeometry()
+        {
+            var vertices = new List<Vertex>();
+            var indices = new List<int>();
+            int vCount = 0, tCount = 0;
+
+            using (StreamReader reader = new StreamReader("Models\\Skull.txt"))
+            {
+                var input = reader.ReadLine();
+                if (input != null)
+                    vCount = Convert.ToInt32(input.Split(':')[1].Trim());
+
+                input = reader.ReadLine();
+                if (input != null)
+                    tCount = Convert.ToInt32(input.Split(':')[1].Trim());
+
+                do
+                {
+                    input = reader.ReadLine();
+                } while (input != null && !input.StartsWith("{", StringComparison.Ordinal));
+
+
+
+                for (int i = 0; i < vCount; i++)
+                {
+                    input = reader.ReadLine();
+                    if (input != null)
+                    {
+                        var vals = input.Split(' ');
+
+                        vertices.Add(new Vertex
+                        {
+                            Pos = new Vector3(
+                                Convert.ToSingle(vals[0].Trim(), CultureInfo.InvariantCulture),
+                                Convert.ToSingle(vals[1].Trim(), CultureInfo.InvariantCulture),
+                                Convert.ToSingle(vals[2].Trim(), CultureInfo.InvariantCulture)),
+                            Normal = new Vector3(
+                                Convert.ToSingle(vals[3].Trim(), CultureInfo.InvariantCulture),
+                                Convert.ToSingle(vals[4].Trim(), CultureInfo.InvariantCulture),
+                                Convert.ToSingle(vals[5].Trim(), CultureInfo.InvariantCulture))
+                        });
+                    }
+                }
+
+                do
+                {
+                    input = reader.ReadLine();
+                } while (input != null && !input.StartsWith("{", StringComparison.Ordinal));
+
+                for (var i = 0; i < tCount; i++)
+                {
+                    input = reader.ReadLine();
+                    if (input == null)
+                    {
+                        break;
+                    }
+
+                    var m = input.Trim().Split(' ');
+                    indices.Add(Convert.ToInt32(m[0].Trim()));
+                    indices.Add(Convert.ToInt32(m[1].Trim()));
+                    indices.Add(Convert.ToInt32(m[2].Trim()));
+                }
+            }
+
+            var geo = MeshGeometry.New(Device, CommandList, vertices, indices, "skullGeo");
+
+            var submesh = new SubmeshGeometry
+            {
+                IndexCount = indices.Count,
+                StartIndexLocation = 0,
+                BaseVertexLocation = 0
+            };
+
+            geo.DrawArgs["skull"] = submesh;
+
+            _geometries[geo.Name] = geo;
+        }
+        */
 
         private void BuildPSOs()
         {
@@ -556,40 +763,84 @@ namespace DX12GameProgramming
         {
             int j = 0;
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid");
 
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gaussgrid",
+                     world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsymgrid",
+                     world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "parabolic", world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotparabolic", world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolicparabolic",
+                     world: Matrix.Scaling(2.2f, 1.20f, 1.20f));
+                        // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "bellybarrel",
+                  world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                        //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "hyperbolbarrel",
+                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                        //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+
+
+
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid",
+               world: Matrix.Scaling(4.0f, 4.0f, 4.0f));
+            // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+
+            /*
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gridXY",
+              world: Matrix.Scaling(4.0f, 4.0f, 4.0f));
+            // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+            */
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
-                world: Matrix.Scaling(1.0f, 1.0f, 1.0f) * Matrix.Translation(0.0f, 0.8f, -2.0f));
-
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
-                    world: Matrix.Translation(3.0f, 2.5f, 4.0f));
-
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
-                    world: Matrix.Translation(2.0f, 2.5f, 2.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(5.0f, 2.5f, 8.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "ellipse",
-                    world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-8.0f, 2.5f, -1.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cylinder",
-                   world: Matrix.Translation(8.0f, 1.5f, 4.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
+
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "cone",
-                  world: Matrix.Translation(5.0f, 1.5f, -1.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
 
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
-                   world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+
+            /*
+            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
+                world: Matrix.Scaling(1.0f, 1.0f, 1.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+            */
+
+            /*
+            AddRenderItem(RenderLayer.Opaque, j++, "skullMat", "skullGeo", "skull",
+               world: Matrix.Scaling(0.5f) * Matrix.Translation(Vector3.UnitY));
+           
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "disc",
-                  world: Matrix.Scaling(.40f, .40f, .40f) * Matrix.Translation(0.0f, 2.5f, 5.0f));
+                world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
+                    //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+ */
 
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gauss",
-                   world: Matrix.Scaling(.40f, .40f, .40f) * Matrix.Translation(-8.0f, 1.5f, 4.0f));
-
-            AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "rotsym",
-                   world: Matrix.Scaling(.40f, .40f, .40f) *  Matrix.Translation(3.0f, 2.5f, -5.0f));
 
 
         }
@@ -618,7 +869,7 @@ namespace DX12GameProgramming
             // For each render item...
             foreach (RenderItem ri in ritems)
             {
-                if(ri.ObjCBIndex != _isVisible)
+                if(ri.ObjCBIndex == _isVisible)
                 { 
                     cmdList.SetVertexBuffer(0, ri.Geo.VertexBufferView);
                     cmdList.SetIndexBuffer(ri.Geo.IndexBufferView);
@@ -634,6 +885,20 @@ namespace DX12GameProgramming
                     cmdList.DrawIndexedInstanced(ri.IndexCount, 1, ri.StartIndexLocation, ri.BaseVertexLocation, 0);
                 }
             }
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            return (value < min) ? min : (value > max) ? max : value;
+
+            /*
+            if (value < min) return min;
+            if (value > max) return max;
+           
+
+            return value;
+            */
+
         }
     }
 }

@@ -45,6 +45,60 @@ namespace DX12GameProgramming
             public List<short> GetIndices16() => Indices32.Select(i => (short)i).ToList();
         }
 
+        public static MeshData CreateGrid(float width, float depth, int m, int n)
+        {
+            var meshData = new MeshData();
+
+            //
+            // Create the vertices.
+            //
+
+            float halfWidth = 0.5f * width;
+            float halfDepth = 0.5f * depth;
+
+            float dx = width / (n - 1);
+            float dz = depth / (m - 1);
+
+            float du = 1f / (n - 1);
+            float dv = 1f / (m - 1);
+
+            for (int i = 0; i < m; i++)
+            {
+                float z = halfDepth - i * dz;
+
+                for (int j = 0; j < n; j++)
+                {
+                    float x = -halfWidth + j * dx;
+
+                    meshData.Vertices.Add(new Vertex(
+                        new Vector3(x, 0, z),
+                        new Vector3(0, 1, 0),
+                        new Vector3(0, 0, 1),
+                        new Vector2(j * du, i * dv))); // Stretch texture over grid.
+                }
+            }
+
+            //
+            // Create the indices.
+            //
+
+            // Iterate over each quad and compute indices.
+            for (int i = 0; i < m - 1; i++)
+            {
+                for (int j = 0; j < n - 1; j++)
+                {
+                    meshData.Indices32.Add(i * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j);
+
+                    meshData.Indices32.Add((i + 1) * n + j);
+                    meshData.Indices32.Add(i * n + j + 1);
+                    meshData.Indices32.Add((i + 1) * n + j + 1);
+                }
+            }
+
+            return meshData;
+        }
 
 
         public static MeshData CreateXZGrid(float width, float depth, int m, int n)
