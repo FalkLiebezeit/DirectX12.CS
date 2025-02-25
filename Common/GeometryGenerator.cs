@@ -608,41 +608,88 @@ namespace DX12GameProgramming
         public static MeshData CreateCone(float bottomRadius, float height, int sliceCount, int stackCount)
         {
             var meshData = new MeshData();
-            float stackHeight = height / stackCount;
-            float radiusStep = (bottomRadius) / stackCount;
-            int ringCount = stackCount + 1;
-            for (int i = 0; i < ringCount; i++)
+
+            // BuildConeSide
             {
-                float y = -0.5f * height + i * stackHeight;
-                float r = bottomRadius - i * radiusStep;
-                float dTheta = 2.0f * MathUtil.Pi / sliceCount;
-                for (int j = 0; j <= sliceCount; j++)
+                float stackHeight = height / stackCount;
+                float radiusStep = (bottomRadius) / stackCount;
+
+                int ringCount = stackCount + 1;
+
+                for (int i = 0; i < ringCount; i++)
                 {
-                    float c = MathHelper.Cosf(j * dTheta);
-                    float s = MathHelper.Sinf(j * dTheta);
-                    var pos = new Vector3(r * c, y, r * s);
-                    var tan = new Vector3(-s, 0.0f, c);
-                    var bitangent = new Vector3(-r * c, -height, -r * s);
-                    var norm = Vector3.Cross(tan, bitangent);
-                    norm.Normalize();
-                    var texCoord = new Vector2((float)j / sliceCount, 1.0f - (float)i / stackCount);
-                    meshData.Vertices.Add(new Vertex(pos, norm, tan, texCoord));
+                    float y = -0.5f * height + i * stackHeight;
+                    float r = bottomRadius - i * radiusStep;
+
+                    float dTheta = 2.0f * MathUtil.Pi / sliceCount;
+                    for (int j = 0; j <= sliceCount; j++)
+                    {
+                        float c = MathHelper.Cosf(j * dTheta);
+                        float s = MathHelper.Sinf(j * dTheta);
+                        var pos = new Vector3(r * c, y, r * s);
+                        var tan = new Vector3(-s, 0.0f, c);
+                        var bitangent = new Vector3(-r * c, -height, -r * s);
+                        var norm = Vector3.Cross(tan, bitangent);
+                        norm.Normalize();
+                        var texCoord = new Vector2((float)j / sliceCount, 1.0f - (float)i / stackCount);
+                        meshData.Vertices.Add(new Vertex(pos, norm, tan, texCoord));
+                    }
+                }
+
+                int ringVertexCount = sliceCount + 1;
+
+                for (int i = 0; i < stackCount; i++)
+                {
+                    for (int j = 0; j < sliceCount; j++)
+                    {
+                        meshData.Indices32.Add(i * ringVertexCount + j);
+                        meshData.Indices32.Add((i + 1) * ringVertexCount + j);
+                        meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+                        meshData.Indices32.Add(i * ringVertexCount + j);
+                        meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
+                        meshData.Indices32.Add(i * ringVertexCount + j + 1);
+                    }
                 }
             }
-            int ringVertexCount = sliceCount + 1;
-            for (int i = 0; i < stackCount; i++)
+
+            // Build Bottom Cap
             {
-                for (int j = 0; j < sliceCount; j++)
-                {
-                    meshData.Indices32.Add(i * ringVertexCount + j);
-                    meshData.Indices32.Add((i + 1) * ringVertexCount + j);
-                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
-                    meshData.Indices32.Add(i * ringVertexCount + j);
-                    meshData.Indices32.Add((i + 1) * ringVertexCount + j + 1);
-                    meshData.Indices32.Add(i * ringVertexCount + j + 1);
-                }
+                int baseIndex = meshData.Vertices.Count;
+
+            float y = -0.5f * height;
+
+            // vertices of ring
+            float dTheta = 2.0f * MathUtil.Pi / sliceCount;
+
+            for (int i = 0; i <= sliceCount; i++)
+            {
+                float x = bottomRadius * MathHelper.Cosf(i * dTheta);
+                float z = bottomRadius * MathHelper.Sinf(i * dTheta);
+
+                // Scale down by the height to try and make top cap texture coord area
+                // proportional to base.
+                float u = x / height + 0.5f;
+                float v = z / height + 0.5f;
+
+                meshData.Vertices.Add(new Vertex(new Vector3(x, y, z), new Vector3(0, -1, 0), new Vector3(1, 0, 0), new Vector2(u, v)));
             }
+
+            // Cap center vertex.
+            meshData.Vertices.Add(new Vertex(new Vector3(0, y, 0), new Vector3(0, -1, 0), new Vector3(1, 0, 0), new Vector2(0.5f, 0.5f)));
+
+            // Cache the index of center vertex.
+            int centerIndex = meshData.Vertices.Count - 1;
+
+            for (int i = 0; i < sliceCount; i++)
+            {
+                meshData.Indices32.Add(centerIndex);
+                meshData.Indices32.Add(baseIndex + i + 1);
+                meshData.Indices32.Add(baseIndex + i);
+            }
+            }
+
             return meshData;
+
         }
 
         public static MeshData CreateDisc(float innerRadius, float outerRadius, float height, int sliceCount, int stackCount)

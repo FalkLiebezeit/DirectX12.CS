@@ -41,7 +41,7 @@ namespace DX12GameProgramming
 
         private bool _isWireframe = true;
 
-        private int num_obj = 13;   // number of objects
+        private int num_obj ;   // number of objects
         private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = hyperbolic parabolic,
                                     // 5 = bellybarrel etc  
         private int _dkey = 1;
@@ -60,8 +60,8 @@ namespace DX12GameProgramming
         public ShapesList()
         {
             MainWindowCaption = "list of nice shapes";
-            MainWindowCaption += " - gauss grid - ";  // default object
-            MainWindowCaption += "        press SPACE for more objects ... ";
+
+            MainWindowCaption += "  press 2 <--> 3 or LEFT <--> RIGHT for more ->  shape number: " + _isVisible;
         }
 
         private FrameResource CurrFrameResource => _frameResources[_currFrameResourceIndex];
@@ -240,8 +240,8 @@ namespace DX12GameProgramming
                 _isVisible = _isVisible > 0 ? _isVisible - 1 : _isVisible;
             */
 
-            // key 2
-            _isVisible = (keyCode == Keys.D2) ? (_isVisible > 0 ? _isVisible - 1 : _isVisible) : _isVisible;
+            // key 2 or SPACE or Right
+            _isVisible = (keyCode == Keys.D2 || keyCode == Keys.Left) ? (_isVisible > 0 ? _isVisible - 1 : _isVisible) : _isVisible;
 
 
             /*
@@ -249,8 +249,10 @@ namespace DX12GameProgramming
                 _isVisible = _isVisible < num_obj ? _isVisible + 1 : _isVisible;
             */
 
-            _isVisible = (keyCode == Keys.D3) ? (_isVisible < num_obj ? _isVisible + 1 : _isVisible) : _isVisible;
+            _isVisible = (keyCode == Keys.D3 || keyCode == Keys.Right) ? (_isVisible < num_obj ? _isVisible + 1 : _isVisible) : _isVisible;
 
+
+            
             /*
             if (keyCode == Keys.Space || keyCode == Keys.Right)
             {
@@ -262,7 +264,7 @@ namespace DX12GameProgramming
             }
             */
 
-            _isVisible += (keyCode == Keys.Space || keyCode == Keys.Right) ? _dkey : (keyCode == Keys.Left ? -_dkey : 0);
+           // _isVisible += (keyCode == Keys.Space || keyCode == Keys.Right) ? 1 : 0;
 
 
             /*
@@ -272,7 +274,7 @@ namespace DX12GameProgramming
             }
             */
 
-            _dkey *= (_isVisible >= num_obj || _isVisible <= 0) ? -1 : 1;
+            // _dkey *= (_isVisible >= num_obj || _isVisible <= 0) ? -1 : 1;
 
 
             /*
@@ -283,7 +285,7 @@ namespace DX12GameProgramming
             _isVisible = Clamp(_isVisible, 0, num_obj);
 
 
-          
+          /*
 
             switch (_isVisible)
             {
@@ -320,7 +322,9 @@ namespace DX12GameProgramming
                     break;
             }
 
-            MainWindowCaption += "        press SPACE for more ->  objnumber: " + _isVisible;
+            */
+
+            MainWindowCaption += "        press 2 <--> 3 or LEFT <--> RIGHT for more ->  shape number: " + _isVisible;
 
         }
 
@@ -530,6 +534,8 @@ namespace DX12GameProgramming
             var vertices = new List<Vertex>();
             var indices = new List<short>();
 
+            /*
+
             SubmeshGeometry gaussgrid = AppendMeshData(GeometryGenerator.CreateGaussGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
 
             SubmeshGeometry rotsymgrid = AppendMeshData(GeometryGenerator.CreateRotSymGrid(7.0f, 7.0f, 40, 40), Color.Blue, vertices, indices);
@@ -544,13 +550,12 @@ namespace DX12GameProgramming
 
             SubmeshGeometry hyperbolbarrel = AppendMeshData(GeometryGenerator.CreateHyperBolBarrel(0.8f, 3.0f, 20, 20), Color.Blue, vertices, indices);
 
-
+            */
 
 
             SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
 
-            //SubmeshGeometry gridXY = AppendMeshData(GeometryGenerator.CreateXYGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
-
+           
 
 
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(3.0f, 2.0f, 3.0f, 3), Color.DarkGreen, vertices, indices);
@@ -574,7 +579,7 @@ namespace DX12GameProgramming
 
             var geo = MeshGeometry.New(Device, CommandList, vertices, indices.ToArray(), "shapeGeo");
 
-
+            /*
 
             geo.DrawArgs["gaussgrid"] = gaussgrid;
             geo.DrawArgs["rotsymgrid"] = rotsymgrid;
@@ -584,9 +589,9 @@ namespace DX12GameProgramming
             geo.DrawArgs["bellybarrel"] = bellybarrel;
             geo.DrawArgs["hyperbolbarrel"] = hyperbolbarrel;
 
-            geo.DrawArgs["grid"] = grid;
-            //geo.DrawArgs["gridXY"] = gridXY;
+            */
 
+            geo.DrawArgs["grid"] = grid;
 
             geo.DrawArgs["box"] = box;
             geo.DrawArgs["sphere"] = sphere;
@@ -597,11 +602,7 @@ namespace DX12GameProgramming
             geo.DrawArgs["torus"] = torus;
 
             
-            //geo.DrawArgs["quad"] = quad;
-           // geo.DrawArgs["disc"] = disc;
            
-            
-
             _geometries[geo.Name] = geo;
         }
 
@@ -764,7 +765,7 @@ namespace DX12GameProgramming
             int j = 0;
 
 
-
+            /*
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gaussgrid",
                      world: Matrix.Scaling(1.2f, 1.20f, 1.20f));
 
@@ -788,7 +789,7 @@ namespace DX12GameProgramming
                  world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
                         //world: Matrix.Translation(-2.0f, 1.5f, 7.0f));
 
-
+            */
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid",
                world: Matrix.Scaling(4.0f, 4.0f, 4.0f));
@@ -823,7 +824,7 @@ namespace DX12GameProgramming
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "torus",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
-                    //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
+            //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
 
             /*
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "quad",
@@ -841,7 +842,7 @@ namespace DX12GameProgramming
                     //world: Matrix.Translation(-2.0f, 1.5f, 0.0f));
  */
 
-
+            num_obj = --j ;
 
         }
 
