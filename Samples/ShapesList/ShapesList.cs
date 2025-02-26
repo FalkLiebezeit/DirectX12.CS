@@ -42,9 +42,9 @@ namespace DX12GameProgramming
         private bool _isWireframe = true;
 
         private int num_obj ;   // number of objects
-        private int _isVisible = 0; // 0 = gaussgrid, 1 = rotsymgrid, 2 = parabolic, 3 = rotparabolic, 4 = hyperbolic parabolic,
-                                    // 5 = bellybarrel etc  
-        private int _dkey = 1;
+        private int _isVisible = 0;
+
+        private int _dkey = 1;  //  keyboard key press direction
 
         private Vector3 _eyePos;
         private Matrix _proj = Matrix.Identity;
@@ -227,10 +227,8 @@ namespace DX12GameProgramming
         {
             base.OnKeyDown(keyCode);
 
-           
             MainWindowCaption = "list of nice shapes";
 
-           
 
             // if pressed key 1 on the keyboard
             _isWireframe = (keyCode == Keys.D1) ? false : _isWireframe;
@@ -264,7 +262,7 @@ namespace DX12GameProgramming
             }
             */
 
-           // _isVisible += (keyCode == Keys.Space || keyCode == Keys.Right) ? 1 : 0;
+           _isVisible +=  (keyCode == Keys.Space) ? _dkey : 0;
 
 
             /*
@@ -274,7 +272,7 @@ namespace DX12GameProgramming
             }
             */
 
-            // _dkey *= (_isVisible >= num_obj || _isVisible <= 0) ? -1 : 1;
+            _dkey *= (_isVisible >= num_obj || _isVisible <= 0) ? -1 : 1;
 
 
             /*
@@ -446,6 +444,7 @@ namespace DX12GameProgramming
             for (int frameIndex = 0; frameIndex < NumFrameResources; frameIndex++)
             {
                 Resource objectCB = _frameResources[frameIndex].ObjectCB.Resource;
+
                 for (int i = 0; i < objCount; i++)
                 {
                     long cbAddress = objectCB.GPUVirtualAddress;
@@ -793,7 +792,7 @@ namespace DX12GameProgramming
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "grid",
                world: Matrix.Scaling(4.0f, 4.0f, 4.0f));
-            // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+            // * Matrix.Translation(0.0f, 0.0f, 0.0f));
 
             /*
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "gridXY",
@@ -803,7 +802,7 @@ namespace DX12GameProgramming
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "box",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
-                    // world: Matrix.Scaling(3.0f, 3.0f, 3.0f) * Matrix.Translation(0.0f, 0.0f, 0.0f));
+                    // * Matrix.Translation(0.0f, 0.0f, 0.0f));
 
             AddRenderItem(RenderLayer.Opaque, j++, "shapeGeo", "sphere",
                 world: Matrix.Scaling(2.0f, 2.0f, 2.0f));
@@ -849,6 +848,7 @@ namespace DX12GameProgramming
         private void AddRenderItem(RenderLayer layer, int objCBIndex, string geoName, string submeshName, Matrix? world = null)
         {
             MeshGeometry geo = _geometries[geoName];
+
             SubmeshGeometry submesh = geo.DrawArgs[submeshName];
 
             var renderItem = new RenderItem

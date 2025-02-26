@@ -7,3 +7,4 @@ A collection of *DirectX 12 C# samples*. All the samples have been ported to .NE
 # Building
 
 The samples will compile with Visual Studio 2022+ and run on Windows 10+ with DirectX 12 capable graphics hardware.
+SHapes can be rotated and zoomed using mouse buttons.

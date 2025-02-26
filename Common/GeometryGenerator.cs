@@ -318,6 +318,7 @@ namespace DX12GameProgramming
             for (int i = 1; i <= stackCount - 1; i++)
             {
                 float phi = i * phiStep;
+
                 for (int j = 0; j <= sliceCount; j++)
                 {
                     float theta = j * thetaStep;
@@ -333,6 +334,7 @@ namespace DX12GameProgramming
                         -radius * MathHelper.Sinf(phi) * MathHelper.Sinf(theta),
                         0,
                         radius * MathHelper.Sinf(phi) * MathHelper.Cosf(theta));
+
                     tan.Normalize();
 
                     Vector3 norm = pos;
@@ -365,6 +367,7 @@ namespace DX12GameProgramming
 
             int baseIndex = 1;
             int ringVertexCount = sliceCount + 1;
+
             for (int i = 0; i < stackCount - 2; i++)
             {
                 for (int j = 0; j < sliceCount; j++)
