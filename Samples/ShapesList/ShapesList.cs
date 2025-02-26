@@ -143,7 +143,7 @@ namespace DX12GameProgramming
             CommandList.ResourceBarrierTransition(CurrentBackBuffer, ResourceStates.Present, ResourceStates.RenderTarget);
 
             // Clear the back buffer and depth buffer.
-            CommandList.ClearRenderTargetView(CurrentBackBufferView, Color.LightSteelBlue);
+            CommandList.ClearRenderTargetView(CurrentBackBufferView, Color.DarkGray);
             CommandList.ClearDepthStencilView(DepthStencilView, ClearFlags.FlagsDepth | ClearFlags.FlagsStencil, 1.0f, 0);
 
             // Specify the buffers we are going to render to.
@@ -552,10 +552,7 @@ namespace DX12GameProgramming
             */
 
 
-            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(3.0f, 2.0f, 20, 20), Color.CadetBlue, vertices, indices);
-
-           
-
+            SubmeshGeometry grid = AppendMeshData(GeometryGenerator.CreateGrid(2.0f, 2.0f, 10, 10), Color.IndianRed, vertices, indices);
 
             SubmeshGeometry box = AppendMeshData(GeometryGenerator.CreateBox(3.0f, 2.0f, 3.0f, 3), Color.DarkGreen, vertices, indices);
            
